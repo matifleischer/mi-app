@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Mi Medicación">
+
+    <title>Mi Medicación</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f5f7f5;
+            color: #1f2937;
+            min-height: 100vh;
+        }
+
+        .app {
+            max-width: 500px;
+            margin: auto;
+            padding: 24px 18px 40px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            color: #6b7280;
+            font-size: 15px;
+        }
+
+        .date {
+            text-align: center;
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 22px;
+        }
+
+        .progress-card {
+            background: white;
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+
+        .progress-title {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .progress {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #22c55e;
+            transition: width 0.3s ease;
+        }
+
+        .medication-card {
+            background: white;
+            border-radius: 20px;
+            padding: 22px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+
+        .med-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .med-icon {
+            font-size: 32px;
+        }
+
+        .med-info h2 {
+            font-size: 20px;
+        }
+
+        .med-info p {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 3px;
+        }
+
+        .take-button {
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 2px solid #bbf7d0;
+            transition: 0.2s;
+        }
+
+        .take-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .take-button.taken {
+            background: #22c55e;
+            color: white;
+            border-color: #22c55e;
+        }
+
+        .taken-time {
+            text-align: center;
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .complete-message {
+            display: none;
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .complete-message.show {
+            display: block;
+        }
+
+        .calendar-section {
+            margin-top: 30px;
+        }
+
+        .calendar-section h2 {
+            font-size: 21px;
+            margin-bottom: 14px;
+        }
+
+        .calendar-card {
+            background: white;
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .calendar-header button {
+            border: none;
+            background: #f3f4f6;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .month-title {
+            font-weight: 700;
+            font-size: 17px;
+        }
+
+        .weekdays,
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 600;
+            padding-bottom: 6px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #f3f4f6;
+            position: relative;
+        }
+
+        .day.empty {
+            background: transparent;
+            cursor: default;
+        }
+
+        .day.complete {
+            background: #22c55e;
+            color: white;
+        }
+
+        .day.partial {
+            background: #fde68a;
+            color: #92400e;
+        }
+
+        .day.missed {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        .day.today {
+            outline: 3px solid #86efac;
+            outline-offset: 1px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 16px;
+            font-size: 11px;
+            color: #6b7280;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+        }
+
+        .green {
+            background: #22c55e;
+        }
+
+        .yellow {
+            background: #fde68a;
+        }
+
+        .red {
+            background: #fecaca;
+        }
+
+        .gray {
+            background: #f3f4f6;
+        }
+
+        .stats {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .stat-number {
+            font-size: 25px;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .reset-button {
+            width: 100%;
+            margin-top: 30px;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        @media (max-width: 380px) {
+            .app {
+                padding: 18px 14px 30px;
+            }
+
+            header h1 {
+                font-size: 25px;
+            }
+
+            .medication-card {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <header>
+        <h1>💊 Mi Medicación</h1>
+        <p>Registro diario</p>
+    </header>
+
+    <div class="date" id="todayDate"></div>
+
+    <div class="progress-card">
+        <div class="progress-title">Progreso de hoy</div>
+
+        <div class="progress" id="progressText">
+            0 / 2
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+
+    <!-- MAÑANA -->
+    <div class="medication-card">
+
+        <div class="med-header">
+            <div class="med-icon">☀️</div>
+
+            <div class="med-info">
+                <h2>Mañana</h2>
+                <p>Medicamento de la mañana</p>
+            </div>
+        </div>
+
+        <button
+            class="take-button"
+            id="morningButton"
+            onclick="toggleMedication('morning')">
+            ○ Marcar como tomado
+        </button>
+
+        <div
+            class="taken-time"
+            id="morningTime">
+        </div>
+
+    </div>
+
+
+    <!-- NOCHE -->
+    <div class="medication-card">
+
+        <div class="med-header">
+            <div class="med-icon">🌙</div>
+
+            <div class="med-info">
+                <h2>Noche</h2>
+                <p>Medicamento de la noche</p>
+            </div>
+        </div>
+
+        <button
+            class="take-button"
+            id="nightButton"
+            onclick="toggleMedication('night')">
+            ○ Marcar como tomado
+        </button>
+
+        <div
+            class="taken-time"
+            id="nightTime">
+        </div>
+
+    </div>
+
+
+    <div
+        class="complete-message"
+        id="completeMessage">
+        🎉 ¡Día completado!
+    </div>
+
+
+    <!-- CALENDARIO -->
+    <div class="calendar-section">
+
+        <h2>📅 Historial</h2>
+
+        <div class="calendar-card">
+
+            <div class="calendar-header">
+
+                <button onclick="changeMonth(-1)">
+                    ‹
+                </button>
+
+                <div
+                    class="month-title"
+                    id="monthTitle">
+                </div>
+
+                <button onclick="changeMonth(1)">
+                    ›
+                </button>
+
+            </div>
+
+
+            <div class="weekdays">
+
+                <div class="weekday">L</div>
+                <div class="weekday">M</div>
+                <div class="weekday">X</div>
+                <div class="weekday">J</div>
+                <div class="weekday">V</div>
+                <div class="weekday">S</div>
+                <div class="weekday">D</div>
+
+            </div>
+
+
+            <div
+                class="calendar-grid"
+                id="calendarGrid">
+            </div>
+
+
+            <div class="legend">
+
+                <div class="legend-item">
+                    <div class="legend-color green"></div>
+                    Completo
+                </div>
+
+                <div class="legend-item">
+                    <div class="legend-color yellow"></div>
+                    Parcial
+                </div>
+
+                <div class="legend-item">
+                    <div class="legend-color red"></div>
+                    No tomado
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ESTADÍSTICAS -->
+    <div class="stats">
+
+        <div class="stat">
+
+            <div
+                class="stat-number"
+                id="completedDays">
+                0
+            </div>
+
+            <div class="stat-label">
+                Días completos
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div
+                class="stat-number"
+                id="currentStreak">
+                0
+            </div>
+
+            <div class="stat-label">
+                Racha actual 🔥
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <button
+        class="reset-button"
+        onclick="resetAllData()">
+        Restablecer todos los datos
+    </button>
+
+</div>
+
+
+<script>
+
+    /*
+    ============================================================
+    CONFIGURACIÓN
+    ============================================================
+    */
+
+    /*
+    La aplicación considera que el "día de medicación"
+    cambia a las 06:00 AM.
+
+    Esto permite que si tomás el medicamento de la noche
+    a las 02:00 AM, siga perteneciendo al día anterior.
+    */
+
+    const DAY_CUTOFF_HOUR = 6;
+
+
+    /*
+    ============================================================
+    VARIABLES
+    ============================================================
+    */
+
+    let currentCalendarDate = new Date();
+
+
+    /*
+    ============================================================
+    FECHA LÓGICA
+    ============================================================
+    */
+
+    function getMedicationDate(date = new Date()) {
+
+        const adjustedDate = new Date(date);
+
+        /*
+        Si son antes de las 06:00,
+        pertenecen al día anterior.
+        */
+
+        if (adjustedDate.getHours() < DAY_CUTOFF_HOUR) {
+
+            adjustedDate.setDate(
+                adjustedDate.getDate() - 1
+            );
+
+        }
+
+        return formatDate(adjustedDate);
+
+    }
+
+
+    /*
+    ============================================================
+    FORMATO YYYY-MM-DD
+    ============================================================
+    */
+
+    function formatDate(date) {
+
+        const year = date.getFullYear();
+
+        const month = String(
+            date.getMonth() + 1
+        ).padStart(2, "0");
+
+        const day = String(
+            date.getDate()
+        ).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+
+    }
+
+
+    /*
+    ============================================================
+    OBTENER DATOS
+    ============================================================
+    */
+
+    function getData() {
+
+        const data =
+            localStorage.getItem("medicationData");
+
+        if (!data) {
+            return {};
+        }
+
+        return JSON.parse(data);
+
+    }
+
+
+    /*
+    ============================================================
+    GUARDAR DATOS
+    ============================================================
+    */
+
+    function saveData(data) {
+
+        localStorage.setItem(
+            "medicationData",
+            JSON.stringify(data)
+        );
+
+    }
+
+
+    /*
+    ============================================================
+    MARCAR / DESMARCAR MEDICAMENTO
+    ============================================================
+    */
+
+    function toggleMedication(type) {
+
+        const date =
+            getMedicationDate();
+
+        const data =
+            getData();
+
+
+        if (!data[date]) {
+
+            data[date] = {
+                morning: null,
+                night: null
+            };
+
+        }
+
+
+        /*
+        Si ya estaba tomado,
+        permite deshacerlo.
+        */
+
+        if (data[date][type]) {
+
+            data[date][type] = null;
+
+        } else {
+
+            data[date][type] = {
+                time: new Date().toISOString()
+            };
+
+        }
+
+
+        saveData(data);
+
+        updateToday();
+
+        renderCalendar();
+
+        updateStats();
+
+    }
+
+
+    /*
+    ============================================================
+    ACTUALIZAR PANTALLA PRINCIPAL
+    ============================================================
+    */
+
+    function updateToday() {
+
+        const date =
+            getMedicationDate();
+
+        const data =
+            getData();
+
+        const todayData =
+            data[date] || {
+                morning: null,
+                night: null
+            };
+
+
+        updateButton(
+            "morning",
+            todayData.morning
+        );
+
+        updateButton(
+            "night",
+            todayData.night
+        );
+
+
+        const morningTaken =
+            Boolean(todayData.morning);
+
+        const nightTaken =
+            Boolean(todayData.night);
+
+
+        let completed = 0;
+
+        if (morningTaken) completed++;
+        if (nightTaken) completed++;
+
+
+        document.getElementById(
+            "progressText"
+        ).textContent =
+            `${completed} / 2`;
+
+
+        document.getElementById(
+            "progressFill"
+        ).style.width =
+            `${completed * 50}%`;
+
+
+        const message =
+            document.getElementById(
+                "completeMessage"
+            );
+
+
+        if (completed === 2) {
+
+            message.classList.add("show");
+
+        } else {
+
+            message.classList.remove("show");
+
+        }
+
+
+        updateDateText();
+
+    }
+
+
+    /*
+    ============================================================
+    ACTUALIZAR BOTÓN
+    ============================================================
+    */
+
+    function updateButton(type, value) {
+
+        const button =
+            document.getElementById(
+                type + "Button"
+            );
+
+        const timeElement =
+            document.getElementById(
+                type + "Time"
+            );
+
+
+        if (value) {
+
+            button.classList.add("taken");
+
+            button.textContent =
+                "✓ Tomado";
+
+            const date =
+                new Date(value.time);
+
+            timeElement.textContent =
+                `Registrado a las ${formatTime(date)}`;
+
+        } else {
+
+            button.classList.remove("taken");
+
+            button.textContent =
+                "○ Marcar como tomado";
+
+            timeElement.textContent =
+                "";
+
+        }
+
+    }
+
+
+    /*
+    ============================================================
+    FORMATO DE HORA
+    ============================================================
+    */
+
+    function formatTime(date) {
+
+        return date.toLocaleTimeString(
+            "es-AR",
+            {
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+
+    }
+
+
+    /*
+    ============================================================
+    FECHA DE HOY
+    ============================================================
+    */
+
+    function updateDateText() {
+
+        const date =
+            new Date();
+
+        const logicalDate =
+            getMedicationDate(date);
+
+        const [
+            year,
+            month,
+            day
+        ] = logicalDate.split("-");
+
+
+        const dateObject =
+            new Date(
+                Number(year),
+                Number(month) - 1,
+                Number(day)
+            );
+
+
+        const text =
+            dateObject.toLocaleDateString(
+                "es-AR",
+                {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long"
+                }
+            );
+
+
+        document.getElementById(
+            "todayDate"
+        ).textContent =
+            text.charAt(0).toUpperCase()
+            + text.slice(1);
+
+    }
+
+
+    /*
+    ============================================================
+    CALENDARIO
+    ============================================================
+    */
+
+    function renderCalendar() {
+
+        const year =
+            currentCalendarDate.getFullYear();
+
+        const month =
+            currentCalendarDate.getMonth();
+
+
+        const monthName =
+            currentCalendarDate.toLocaleDateString(
+                "es-AR",
+                {
+                    month: "long",
+                    year: "numeric"
+                }
+            );
+
+
+        document.getElementById(
+            "monthTitle"
+        ).textContent =
+            monthName.charAt(0).toUpperCase()
+            + monthName.slice(1);
+
+
+        const grid =
+            document.getElementById(
+                "calendarGrid"
+            );
+
+
+        grid.innerHTML = "";
+
+
+        /*
+        Primer día del mes.
+
+        JavaScript:
+        domingo = 0
+        lunes = 1
+        ...
+
+        Lo convertimos para que lunes sea 0.
+        */
+
+        const firstDay =
+            new Date(
+                year,
+                month,
+                1
+            ).getDay();
+
+
+        const mondayIndex =
+            firstDay === 0
+                ? 6
+                : firstDay - 1;
+
+
+        const daysInMonth =
+            new Date(
+                year,
+                month + 1,
+                0
+            ).getDate();
+
+
+        /*
+        Espacios antes del primer día
+        */
+
+        for (
+            let i = 0;
+            i < mondayIndex;
+            i++
+        ) {
+
+            const empty =
+                document.createElement(
+                    "div"
+                );
+
+            empty.className =
+                "day empty";
+
+            grid.appendChild(empty);
+
+        }
+
+
+        const data =
+            getData();
+
+
+        /*
+        Crear días
+        */
+
+        for (
+            let day = 1;
+            day <= daysInMonth;
+            day++
+        ) {
+
+            const dayElement =
+                document.createElement(
+                    "div"
+                );
+
+
+            dayElement.className =
+                "day";
+
+
+            const date =
+                `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+
+            const dayData =
+                data[date];
+
+
+            /*
+            Estado del día
+            */
+
+            if (dayData) {
+
+                const morning =
+                    Boolean(dayData.morning);
+
+                const night =
+                    Boolean(dayData.night);
+
+
+                if (morning && night) {
+
+                    dayElement.classList.add(
+                        "complete"
+                    );
+
+                } else if (
+                    morning || night
+                ) {
+
+                    dayElement.classList.add(
+                        "partial"
+                    );
+
+                } else {
+
+                    dayElement.classList.add(
+                        "missed"
+                    );
+
+                }
+
+            }
+
+
+            /*
+            Marcar día actual
+            */
+
+            if (
+                date ===
+                getMedicationDate()
+            ) {
+
+                dayElement.classList.add(
+                    "today"
+                );
+
+            }
+
+
+            dayElement.textContent =
+                day;
+
+
+            /*
+            Click en un día:
+            mostrar información.
+            */
+
+            dayElement.onclick =
+                function () {
+
+                    showDayDetails(
+                        date,
+                        dayData
+                    );
+
+                };
+
+
+            grid.appendChild(
+                dayElement
+            );
+
+        }
+
+    }
+
+
+    /*
+    ============================================================
+    CAMBIAR MES
+    ============================================================
+    */
+
+    function changeMonth(direction) {
+
+        currentCalendarDate.setMonth(
+            currentCalendarDate.getMonth()
+            + direction
+        );
+
+        renderCalendar();
+
+    }
+
+
+    /*
+    ============================================================
+    DETALLE DE DÍA
+    ============================================================
+    */
+
+    function showDayDetails(
+        date,
+        dayData
+    ) {
+
+        if (!dayData) {
+
+            alert(
+                `No hay registros para ${formatDateForDisplay(date)}.`
+            );
+
+            return;
+
+        }
+
+
+        let message =
+            `${formatDateForDisplay(date)}\n\n`;
+
+
+        if (dayData.morning) {
+
+            const time =
+                formatTime(
+                    new Date(
+                        dayData.morning.time
+                    )
+                );
+
+            message +=
+                `☀️ Mañana: ✓ ${time}\n`;
+
+        } else {
+
+            message +=
+                `☀️ Mañana: ✗\n`;
+
+        }
+
+
+        if (dayData.night) {
+
+            const time =
+                formatTime(
+                    new Date(
+                        dayData.night.time
+                    )
+                );
+
+            message +=
+                `🌙 Noche: ✓ ${time}\n`;
+
+        } else {
+
+            message +=
+                `🌙 Noche: ✗\n`;
+
+        }
+
+
+        alert(message);
+
+    }
+
+
+    /*
+    ============================================================
+    FORMATO DE FECHA PARA ALERTAS
+    ============================================================
+    */
+
+    function formatDateForDisplay(
+        dateString
+    ) {
+
+        const [
+            year,
+            month,
+            day
+        ] = dateString.split("-");
+
+
+        const date =
+            new Date(
+                Number(year),
+                Number(month) - 1,
+                Number(day)
+            );
+
+
+        return date.toLocaleDateString(
+            "es-AR",
+            {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            }
+        );
+
+    }
+
+
+    /*
+    ============================================================
+    ESTADÍSTICAS
+    ============================================================
+    */
+
+    function updateStats() {
+
+        const data =
+            getData();
+
+
+        let completedDays = 0;
+
+
+        Object.values(data).forEach(
+            day => {
+
+                if (
+                    day.morning &&
+                    day.night
+                ) {
+
+                    completedDays++;
+
+                }
+
+            }
+        );
+
+
+        document.getElementById(
+            "completedDays"
+        ).textContent =
+            completedDays;
+
+
+        /*
+        Calcular racha actual
+        */
+
+        let streak = 0;
+
+        const current =
+            new Date();
+
+
+        /*
+        Empezamos desde el día lógico actual.
+        */
+
+        let date =
+            new Date(
+                current.getFullYear(),
+                current.getMonth(),
+                current.getDate()
+            );
+
+
+        while (true) {
+
+            const dateString =
+                formatDate(date);
+
+
+            const dayData =
+                data[dateString];
+
+
+            if (
+                dayData &&
+                dayData.morning &&
+                dayData.night
+            ) {
+
+                streak++;
+
+                date.setDate(
+                    date.getDate() - 1
+                );
+
+            } else {
+
+                break;
+
+            }
+
+        }
+
+
+        document.getElementById(
+            "currentStreak"
+        ).textContent =
+            streak;
+
+    }
+
+
+    /*
+    ============================================================
+    RESTABLECER
+    ============================================================
+    */
+
+    function resetAllData() {
+
+        const confirmation =
+            confirm(
+                "¿Seguro que querés borrar todo el historial?"
+            );
+
+
+        if (!confirmation) {
+            return;
+        }
+
+
+        localStorage.removeItem(
+            "medicationData"
+        );
+
+
+        updateToday();
+
+        renderCalendar();
+
+        updateStats();
+
+    }
+
+
+    /*
+    ============================================================
+    INICIAR APP
+    ============================================================
+    */
+
+    updateToday();
+
+    renderCalendar();
+
+    updateStats();
+
+
+    /*
+    Actualizar cada minuto.
+
+    Esto permite que si dejás la aplicación abierta
+    y pasa la hora de corte, se actualice correctamente.
+    */
+
+    setInterval(
+        () => {
+
+            updateToday();
+
+        },
+        60 * 1000
+    );
+
+</script>
+
+</body>
+</html>
