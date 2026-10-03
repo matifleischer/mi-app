@@ -1,1408 +1,1155 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Mi Medicación">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Saludable">
+<meta name="theme-color" content="#F2F5F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1A1C" media="(prefers-color-scheme: dark)">
+<title>Saludable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F5F3; --surface:#FFFFFF; --ink:#12282C; --muted:#667A7D; --line:#DCE5E1;
+  --water:#2A8BD2; --water-soft:#D9ECF8;
+  --leaf:#2C9A6A; --leaf-soft:#DDF1E7;
+  --ember:#E86F2C; --ember-soft:#FCE7DA;
+  --danger:#C2412D;
+  --display:"Bricolage Grotesque","Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --body:"Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0E1A1C; --surface:#16272A; --ink:#E9F1EF; --muted:#8FA4A6; --line:#263B3E;
+    --water:#3F9FE4; --water-soft:#143A52;
+    --leaf:#46B886; --leaf-soft:#173B2C;
+    --ember:#F28A4C; --ember-soft:#47270F;
+    --danger:#F0806C;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:var(--body);background:var(--bg);color:var(--ink);font-size:16px;line-height:1.45;overscroll-behavior:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+[hidden]{display:none !important}
 
-    <title>Mi Medicación</title>
+#app{max-width:480px;margin:0 auto;height:100dvh;display:flex;flex-direction:column}
+main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.tab{display:none;padding:calc(20px + env(safe-area-inset-top)) 20px 28px}
+.tab.on{display:block}
+#tab-chat.on{display:flex;flex-direction:column;height:100%;padding:0}
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+h1{font-family:var(--display);font-weight:700;font-size:30px;line-height:1.1;letter-spacing:-.02em}
+h2{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:15px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:24px}
+.icon-btn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--muted);background:var(--surface);flex:none}
+.icon-btn svg{width:20px;height:20px}
+section + section, .block + .block{margin-top:30px}
+.row-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.link{color:var(--water);font-weight:600;font-size:15px;padding:6px 0}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #f5f7f5;
-            color: #1f2937;
-            min-height: 100vh;
-        }
+/* ---------- tanque ---------- */
+.hydro{display:grid;grid-template-columns:132px 1fr;gap:22px;align-items:stretch}
+.tank{position:relative;height:232px;border-radius:26px 26px 34px 34px;background:var(--surface);border:2px solid var(--line);overflow:hidden}
+.tank .water{position:absolute;left:0;right:0;bottom:0;height:0%;background:var(--water);transition:height .9s cubic-bezier(.2,.8,.2,1)}
+.tank .wave{position:absolute;left:0;top:-11px;width:200%;height:12px;fill:var(--water);animation:wave 7s linear infinite}
+.tank .wave.b{opacity:.45;top:-14px;animation-duration:11s;animation-direction:reverse}
+.tank.empty .wave{display:none}
+@keyframes wave{to{transform:translateX(-50%)}}
+.tank .ticks{position:absolute;inset:0;pointer-events:none}
+.tank .ticks i{position:absolute;right:0;width:14px;height:2px;background:var(--line);border-radius:2px}
+.tank .ticks i:nth-child(1){bottom:25%}.tank .ticks i:nth-child(2){bottom:50%;width:22px}.tank .ticks i:nth-child(3){bottom:75%}
+.tank .pct{position:absolute;left:0;right:0;bottom:14px;text-align:center;font-family:var(--display);font-weight:700;font-size:18px;color:var(--muted);mix-blend-mode:normal}
+.tank.half .pct{color:#fff}
+.hydro-side{display:flex;flex-direction:column;justify-content:space-between;min-width:0}
+.big{font-family:var(--display);font-weight:700;font-size:44px;line-height:1;letter-spacing:-.03em}
+.hydro-btns{display:grid;gap:8px;margin-top:14px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 16px;border-radius:14px;font-weight:600;font-size:15px;background:var(--surface);color:var(--ink);transition:transform .12s}
+.btn:active{transform:scale(.97)}
+.btn.water{background:var(--water);color:#fff}
+.btn.leaf{background:var(--leaf);color:#fff}
+.btn.ember{background:var(--ember);color:#fff}
+.btn.ghost{background:transparent;color:var(--muted);min-height:36px;font-weight:500}
+.btn.danger{color:var(--danger)}
+.btn.block-w{width:100%}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
-        .app {
-            max-width: 500px;
-            margin: auto;
-            padding: 24px 18px 40px;
-        }
+/* ---------- comidas ---------- */
+.kcal-line{color:var(--muted);font-size:14px}
+.bar{height:6px;border-radius:6px;background:var(--line);overflow:hidden;margin:10px 0 4px}
+.bar i{display:block;height:100%;background:var(--leaf);border-radius:6px;transition:width .5s}
+.meal-group{margin-top:14px}
+.meal-name{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.food{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;padding:11px 0;border-bottom:1px solid var(--line)}
+.food b{font-weight:500}
+.food span{color:var(--muted);font-size:14px;white-space:nowrap}
+.empty{background:var(--surface);border-radius:18px;padding:20px;color:var(--muted);font-size:15px}
+.empty .btn{margin-top:14px}
 
-        header {
-            text-align: center;
-            margin-bottom: 28px;
-        }
+/* ---------- gym ---------- */
+.nudge{display:flex;align-items:center;gap:14px;background:var(--ember-soft);border-radius:18px;padding:16px}
+.nudge.done{background:var(--leaf-soft)}
+.nudge p{flex:1;font-size:15px}
+.nudge p b{display:block;font-family:var(--display);font-size:17px}
+.nudge .btn{min-height:40px;flex:none}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:18px 0 6px}
+.week div{text-align:center;font-size:12px;color:var(--muted);font-weight:600}
+.week i{display:block;width:30px;height:30px;margin:6px auto 0;border-radius:50%;border:2px solid var(--line)}
+.week .yes i{background:var(--ember);border-color:var(--ember)}
+.week .now i{box-shadow:0 0 0 3px var(--ember-soft)}
+.week .now{color:var(--ink)}
+.ex{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 0;border-bottom:1px solid var(--line)}
+.ex .check{flex:none;width:26px;height:26px;border-radius:9px;border:2px solid var(--line);display:grid;place-items:center;color:transparent}
+.ex.ok .check{background:var(--leaf);border-color:var(--leaf);color:#fff}
+.ex.ok .ex-name{text-decoration:line-through;color:var(--muted)}
+.ex-body{flex:1;min-width:0}
+.ex-name{font-weight:600}
+.ex-tip{font-size:14px;color:var(--muted)}
+.ex-dose{font-family:var(--display);font-weight:700;white-space:nowrap}
+.timer{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface);border-radius:18px;padding:16px 18px}
+.timer .clock{font-family:var(--display);font-weight:700;font-size:34px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 14px;border-radius:999px;background:var(--surface);font-size:14px;font-weight:500}
+.chip.on{background:var(--ink);color:var(--bg)}
+details{border-bottom:1px solid var(--line)}
+summary{list-style:none;display:flex;justify-content:space-between;gap:12px;padding:14px 0;cursor:pointer;font-weight:600}
+summary::-webkit-details-marker{display:none}
+summary span{color:var(--muted);font-weight:400;font-size:14px}
+details ul{list-style:none;padding:0 0 14px;color:var(--muted);font-size:15px}
+details li{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
 
-        header h1 {
-            font-size: 28px;
-            margin-bottom: 6px;
-        }
+/* ---------- mes ---------- */
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.dow,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.dow div{text-align:center;font-size:12px;font-weight:600;color:var(--muted);padding-bottom:6px}
+.cell{aspect-ratio:1;border-radius:12px;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:14px;font-weight:600}
+.cell.blank{background:transparent}
+.cell.future{opacity:.4}
+.cell.w1{background:color-mix(in srgb,var(--water) 18%,var(--surface))}
+.cell.w2{background:color-mix(in srgb,var(--water) 42%,var(--surface))}
+.cell.w3{background:var(--water);color:#fff}
+.cell.today{box-shadow:0 0 0 2px var(--ink)}
+.cell .dots{display:flex;gap:3px;height:5px}
+.cell .dots i{width:5px;height:5px;border-radius:50%}
+.d-food{background:var(--leaf)}.d-gym{background:var(--ember)}
+.cell.w3 .d-food,.cell.w3 .d-gym{box-shadow:0 0 0 1px #fff}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;font-size:13px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:50%}
+.legend .sq{border-radius:3px;background:var(--water)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:18px 12px}
+.stat b{display:block;font-family:var(--display);font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.stat span{color:var(--muted);font-size:14px}
 
-        header p {
-            color: #6b7280;
-            font-size: 15px;
-        }
+/* ---------- chat ---------- */
+.chat-head{padding:calc(16px + env(safe-area-inset-top)) 20px 12px;border-bottom:1px solid var(--line)}
+.chat-head h2{font-size:22px}
+#msgs{flex:1;min-height:0;overflow-y:auto;padding:16px 16px 8px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:84%;padding:10px 14px;border-radius:18px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15.5px}
+.msg.user{align-self:flex-end;background:var(--ink);color:var(--bg);border-bottom-right-radius:6px}
+.msg.assistant{align-self:flex-start;background:var(--surface);border-bottom-left-radius:6px}
+.msg.error{align-self:center;background:transparent;color:var(--danger);font-size:14px;text-align:center}
+.msg img{display:block;max-width:180px;border-radius:12px;margin-bottom:6px}
+.logged{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.logged button{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:13px;font-weight:600;background:var(--leaf-soft);color:var(--leaf)}
+.logged button.agua{background:var(--water-soft);color:var(--water)}
+.logged button.gym{background:var(--ember-soft);color:var(--ember)}
+.logged button.undone{text-decoration:line-through;opacity:.5}
+.typing{align-self:flex-start;color:var(--muted);font-size:14px;padding:4px 8px}
+.suggest{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-top:6px}
+.suggest .chip{text-align:left;border-radius:14px}
+.composer{padding:10px 12px;border-top:1px solid var(--line);background:var(--bg)}
+.preview{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:14px;color:var(--muted)}
+.preview img{width:52px;height:52px;object-fit:cover;border-radius:10px}
+.composer-row{display:flex;align-items:flex-end;gap:8px}
+.composer textarea{flex:1;resize:none;border:1px solid var(--line);background:var(--surface);border-radius:20px;padding:10px 14px;max-height:120px;min-height:44px;outline:none}
+.composer textarea:focus{border-color:var(--water)}
+.round{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--surface);color:var(--ink)}
+.round.send{background:var(--ink);color:var(--bg)}
+.round:disabled{opacity:.4}
+.round svg{width:20px;height:20px}
+.setup{margin:auto 0;padding:8px 6px}
+.setup ol{margin:12px 0 16px 20px;color:var(--muted);font-size:15px}
+.setup li{margin-bottom:4px}
+.setup a{color:var(--water);font-weight:600}
 
-        .date {
-            text-align: center;
-            font-size: 17px;
-            font-weight: 600;
-            margin-bottom: 22px;
-        }
+/* ---------- formularios / hoja ---------- */
+label.f{display:block;font-size:14px;font-weight:600;margin:14px 0 6px}
+.in{width:100%;min-height:46px;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:0 14px;outline:none}
+.in:focus{border-color:var(--water)}
+.hint{font-size:13px;color:var(--muted);margin-top:6px}
+#sheet{position:fixed;inset:0;z-index:20;display:flex;align-items:flex-end;justify-content:center;background:rgba(8,20,22,.45)}
+.sheet-card{width:100%;max-width:480px;max-height:88dvh;overflow-y:auto;background:var(--surface);border-radius:24px 24px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(24px);opacity:0}}
+.sheet-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sheet-card .btn{background:var(--bg)}
+.sheet-card .btn.water{background:var(--water)}.sheet-card .btn.leaf{background:var(--leaf)}
+.sheet-card .chip{background:var(--bg)}.sheet-card .chip.on{background:var(--ink)}
+.sheet-card .food:last-child{border-bottom:none}
+.sheet-actions{display:grid;gap:8px;margin-top:20px}
+hr{border:none;border-top:1px solid var(--line);margin:22px 0 8px}
 
-        .progress-card {
-            background: white;
-            border-radius: 18px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-            text-align: center;
-        }
-
-        .progress-title {
-            font-size: 14px;
-            color: #6b7280;
-            margin-bottom: 8px;
-        }
-
-        .progress {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .progress-bar {
-            height: 10px;
-            background: #e5e7eb;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: #22c55e;
-            transition: width 0.3s ease;
-        }
-
-        .medication-card {
-            background: white;
-            border-radius: 20px;
-            padding: 22px;
-            margin-bottom: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-        }
-
-        .med-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 18px;
-        }
-
-        .med-icon {
-            font-size: 32px;
-        }
-
-        .med-info h2 {
-            font-size: 20px;
-        }
-
-        .med-info p {
-            color: #6b7280;
-            font-size: 14px;
-            margin-top: 3px;
-        }
-
-        .take-button {
-            width: 100%;
-            border: none;
-            border-radius: 14px;
-            padding: 16px;
-            font-size: 17px;
-            font-weight: 700;
-            cursor: pointer;
-            background: #f0fdf4;
-            color: #16a34a;
-            border: 2px solid #bbf7d0;
-            transition: 0.2s;
-        }
-
-        .take-button:hover {
-            transform: translateY(-1px);
-        }
-
-        .take-button.taken {
-            background: #22c55e;
-            color: white;
-            border-color: #22c55e;
-        }
-
-        .taken-time {
-            text-align: center;
-            color: #6b7280;
-            font-size: 13px;
-            margin-top: 10px;
-        }
-
-        .complete-message {
-            display: none;
-            background: #dcfce7;
-            color: #166534;
-            border-radius: 16px;
-            padding: 16px;
-            text-align: center;
-            margin: 20px 0;
-            font-weight: 600;
-        }
-
-        .complete-message.show {
-            display: block;
-        }
-
-        .calendar-section {
-            margin-top: 30px;
-        }
-
-        .calendar-section h2 {
-            font-size: 21px;
-            margin-bottom: 14px;
-        }
-
-        .calendar-card {
-            background: white;
-            border-radius: 20px;
-            padding: 18px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-        }
-
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .calendar-header button {
-            border: none;
-            background: #f3f4f6;
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        .month-title {
-            font-weight: 700;
-            font-size: 17px;
-        }
-
-        .weekdays,
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
-        }
-
-        .weekday {
-            text-align: center;
-            font-size: 11px;
-            color: #9ca3af;
-            font-weight: 600;
-            padding-bottom: 6px;
-        }
-
-        .day {
-            aspect-ratio: 1;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            background: #f3f4f6;
-            position: relative;
-        }
-
-        .day.empty {
-            background: transparent;
-            cursor: default;
-        }
-
-        .day.complete {
-            background: #22c55e;
-            color: white;
-        }
-
-        .day.partial {
-            background: #fde68a;
-            color: #92400e;
-        }
-
-        .day.missed {
-            background: #fecaca;
-            color: #991b1b;
-        }
-
-        .day.today {
-            outline: 3px solid #86efac;
-            outline-offset: 1px;
-        }
-
-        .legend {
-            display: flex;
-            justify-content: center;
-            gap: 14px;
-            margin-top: 16px;
-            font-size: 11px;
-            color: #6b7280;
-            flex-wrap: wrap;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 4px;
-        }
-
-        .green {
-            background: #22c55e;
-        }
-
-        .yellow {
-            background: #fde68a;
-        }
-
-        .red {
-            background: #fecaca;
-        }
-
-        .gray {
-            background: #f3f4f6;
-        }
-
-        .stats {
-            margin-top: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .stat {
-            background: white;
-            border-radius: 16px;
-            padding: 16px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .stat-number {
-            font-size: 25px;
-            font-weight: 700;
-        }
-
-        .stat-label {
-            color: #6b7280;
-            font-size: 12px;
-            margin-top: 4px;
-        }
-
-        .reset-button {
-            width: 100%;
-            margin-top: 30px;
-            padding: 12px;
-            border: none;
-            background: transparent;
-            color: #9ca3af;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        @media (max-width: 380px) {
-            .app {
-                padding: 18px 14px 30px;
-            }
-
-            header h1 {
-                font-size: 25px;
-            }
-
-            .medication-card {
-                padding: 18px;
-            }
-        }
-    </style>
+nav{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));flex:none}
+nav button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:12px;font-weight:600;color:var(--muted);border-radius:12px}
+nav button svg{width:22px;height:22px}
+nav button.on{color:var(--ink)}
+#toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(10px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:30;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+#toast.show{opacity:1;transform:translateX(-50%)}
+@media (prefers-reduced-motion: reduce){
+  .tank .wave{animation:none}
+  .tank .water,.bar i,.btn,#toast{transition:none}
+  .sheet-card{animation:none}
+}
+</style>
 </head>
-
 <body>
+<div id="app">
+<main id="main">
 
-<div class="app">
-
-    <header>
-        <h1>💊 Mi Medicación</h1>
-        <p>Registro diario</p>
-    </header>
-
-    <div class="date" id="todayDate"></div>
-
-    <div class="progress-card">
-        <div class="progress-title">Progreso de hoy</div>
-
-        <div class="progress" id="progressText">
-            0 / 2
-        </div>
-
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
+  <!-- ================= HOY ================= -->
+  <div class="tab on" id="tab-hoy">
+    <div class="head">
+      <div>
+        <h1 id="hello">Hola</h1>
+        <p class="sub" id="todayText"></p>
+      </div>
+      <button class="icon-btn" data-act="settings" aria-label="Ajustes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+      </button>
     </div>
 
-
-    <!-- MAÑANA -->
-    <div class="medication-card">
-
-        <div class="med-header">
-            <div class="med-icon">☀️</div>
-
-            <div class="med-info">
-                <h2>Mañana</h2>
-                <p>Medicamento de la mañana</p>
-            </div>
+    <section>
+      <div class="hydro">
+        <div class="tank empty" id="tank" role="img" aria-label="Tanque de agua">
+          <div class="water" id="water">
+            <svg class="wave b" viewBox="0 0 400 20" preserveAspectRatio="none"><path d="M0 10 Q50 0 100 10 T200 10 T300 10 T400 10 V20 H0Z"/></svg>
+            <svg class="wave" viewBox="0 0 400 20" preserveAspectRatio="none"><path d="M0 10 Q50 0 100 10 T200 10 T300 10 T400 10 V20 H0Z"/></svg>
+          </div>
+          <div class="ticks"><i></i><i></i><i></i></div>
+          <div class="pct" id="waterPct">0%</div>
         </div>
+        <div class="hydro-side">
+          <div>
+            <div class="big" id="waterBig">0 L</div>
+            <p class="sub" id="waterSub"></p>
+          </div>
+          <div class="hydro-btns">
+            <button class="btn water" data-act="water" data-ml="250">+ Vaso <span style="opacity:.75;font-weight:500">250 ml</span></button>
+            <button class="btn" data-act="water" data-ml="500">+ Botella <span style="color:var(--muted);font-weight:500">500 ml</span></button>
+            <div class="pair">
+              <button class="btn ghost" data-act="water-custom">Otra</button>
+              <button class="btn ghost" data-act="water-undo">Deshacer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <button
-            class="take-button"
-            id="morningButton"
-            onclick="toggleMedication('morning')">
-            ○ Marcar como tomado
+    <section>
+      <div class="row-head">
+        <h2>Comidas de hoy</h2>
+        <button class="link" data-act="food-add">Agregar</button>
+      </div>
+      <div id="kcalBox"></div>
+      <div id="foods"></div>
+    </section>
+
+    <section>
+      <div id="nudge"></div>
+    </section>
+  </div>
+
+  <!-- ================= CHAT ================= -->
+  <div class="tab" id="tab-chat">
+    <div class="chat-head">
+      <h2>Tu nutri</h2>
+      <p class="sub">Contale qué comiste o tomaste, o mandale una foto.</p>
+    </div>
+    <div id="msgs"></div>
+    <div class="composer" id="composer">
+      <div class="preview" id="preview" hidden>
+        <img id="previewImg" alt="">
+        <span>Foto lista para enviar</span>
+        <button class="link" data-act="img-clear" style="margin-left:auto">Quitar</button>
+      </div>
+      <div class="composer-row">
+        <button class="round" data-act="img-pick" aria-label="Sacar o elegir una foto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
         </button>
-
-        <div
-            class="taken-time"
-            id="morningTime">
-        </div>
-
-    </div>
-
-
-    <!-- NOCHE -->
-    <div class="medication-card">
-
-        <div class="med-header">
-            <div class="med-icon">🌙</div>
-
-            <div class="med-info">
-                <h2>Noche</h2>
-                <p>Medicamento de la noche</p>
-            </div>
-        </div>
-
-        <button
-            class="take-button"
-            id="nightButton"
-            onclick="toggleMedication('night')">
-            ○ Marcar como tomado
+        <textarea id="chatText" rows="1" placeholder="Hoy comí…"></textarea>
+        <button class="round send" data-act="send" id="sendBtn" aria-label="Enviar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
         </button>
-
-        <div
-            class="taken-time"
-            id="nightTime">
-        </div>
-
+      </div>
+      <input type="file" id="imgInput" accept="image/*" hidden>
     </div>
+  </div>
 
-
-    <div
-        class="complete-message"
-        id="completeMessage">
-        🎉 ¡Día completado!
+  <!-- ================= GYM ================= -->
+  <div class="tab" id="tab-gym">
+    <div class="head">
+      <div>
+        <h1>Gym</h1>
+        <p class="sub" id="streakText"></p>
+      </div>
     </div>
+    <div id="gymBody"></div>
+  </div>
 
+  <!-- ================= MES ================= -->
+  <div class="tab" id="tab-mes">
+    <div class="head"><div><h1>Tu mes</h1><p class="sub">Tocá un día para ver el detalle.</p></div></div>
+    <div id="mesBody"></div>
+  </div>
 
-    <!-- CALENDARIO -->
-    <div class="calendar-section">
+</main>
 
-        <h2>📅 Historial</h2>
-
-        <div class="calendar-card">
-
-            <div class="calendar-header">
-
-                <button onclick="changeMonth(-1)">
-                    ‹
-                </button>
-
-                <div
-                    class="month-title"
-                    id="monthTitle">
-                </div>
-
-                <button onclick="changeMonth(1)">
-                    ›
-                </button>
-
-            </div>
-
-
-            <div class="weekdays">
-
-                <div class="weekday">L</div>
-                <div class="weekday">M</div>
-                <div class="weekday">X</div>
-                <div class="weekday">J</div>
-                <div class="weekday">V</div>
-                <div class="weekday">S</div>
-                <div class="weekday">D</div>
-
-            </div>
-
-
-            <div
-                class="calendar-grid"
-                id="calendarGrid">
-            </div>
-
-
-            <div class="legend">
-
-                <div class="legend-item">
-                    <div class="legend-color green"></div>
-                    Completo
-                </div>
-
-                <div class="legend-item">
-                    <div class="legend-color yellow"></div>
-                    Parcial
-                </div>
-
-                <div class="legend-item">
-                    <div class="legend-color red"></div>
-                    No tomado
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- ESTADÍSTICAS -->
-    <div class="stats">
-
-        <div class="stat">
-
-            <div
-                class="stat-number"
-                id="completedDays">
-                0
-            </div>
-
-            <div class="stat-label">
-                Días completos
-            </div>
-
-        </div>
-
-
-        <div class="stat">
-
-            <div
-                class="stat-number"
-                id="currentStreak">
-                0
-            </div>
-
-            <div class="stat-label">
-                Racha actual 🔥
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <button
-        class="reset-button"
-        onclick="resetAllData()">
-        Restablecer todos los datos
-    </button>
-
+<nav>
+  <button class="on" data-tab="hoy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>Hoy</button>
+  <button data-tab="chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 0 1-11.8 7L4 20l1.1-3.9A8 8 0 1 1 20 12z"/></svg>Nutri</button>
+  <button data-tab="gym"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8v8M3 10v4M18 8v8M21 10v4M6 12h12"/></svg>Gym</button>
+  <button data-tab="mes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Mes</button>
+</nav>
 </div>
 
+<div id="sheet" hidden><div class="sheet-card" id="sheetCard"></div></div>
+<div id="toast" role="status"></div>
 
 <script>
+/* ============================================================
+   CONFIGURACIÓN
+   ============================================================ */
+const STORE_KEY = "saludable.v1";
+const DAY_CUTOFF_HOUR = 4;   // lo que comés/tomás antes de las 04:00 cuenta para el día anterior
+const MEALS = [["desayuno","Desayuno"],["almuerzo","Almuerzo"],["merienda","Merienda"],["cena","Cena"],["snack","Entre horas"]];
+const DEFAULT_MODELS = { gemini: "gemini-flash-latest", claude: "claude-haiku-4-5-20251001" };
 
-    /*
-    ============================================================
-    CONFIGURACIÓN
-    ============================================================
-    */
+/* Rutinas de abdominales: rotan una por día, en este orden. */
+const ROUTINES = [
+  { name:"Core clásico", focus:"Todo el abdomen", ex:[
+    ["Crunch en colchoneta","3 × 15","Subí despegando solo los omóplatos, sin tirar del cuello."],
+    ["Elevación de piernas en banco","3 × 12","Bajá lento, sin arquear la zona lumbar."],
+    ["Bicicleta","3 × 20","Codo a rodilla contraria, sin apurarte."],
+    ["Plancha frontal","3 × 40 s","Cola y abdomen apretados, cuerpo en línea."]]},
+  { name:"Oblicuos", focus:"Costados y rotación", ex:[
+    ["Russian twist con disco","3 × 20","Girá el torso, no solo los brazos."],
+    ["Leñador en polea","3 × 12 por lado","De arriba hacia la cadera contraria."],
+    ["Crunch oblicuo","3 × 15 por lado","Hombro hacia la rodilla opuesta."],
+    ["Plancha lateral","3 × 30 s por lado","Cadera arriba, sin dejarla caer."]]},
+  { name:"Abdomen bajo", focus:"Zona baja", ex:[
+    ["Elevación de piernas acostado","3 × 15","Lumbar pegada al piso todo el tiempo."],
+    ["Crunch invertido","3 × 15","Llevá las rodillas al pecho y despegá la cola."],
+    ["Tijeras","3 × 30 s","Piernas bajas, movimiento corto."],
+    ["Mountain climbers","3 × 30 s","Ritmo parejo, cadera baja."]]},
+  { name:"Estabilidad", focus:"Core profundo, sin impacto", ex:[
+    ["Dead bug","3 × 10 por lado","Brazo y pierna contrarios, lento."],
+    ["Bird dog","3 × 10 por lado","Sin rotar la cadera."],
+    ["Hollow hold","3 × 25 s","Lumbar al piso, brazos atrás."],
+    ["Plancha con toque de hombro","3 × 16","Evitá balancear la cadera."]]},
+  { name:"Polea y máquinas", focus:"Con carga", ex:[
+    ["Crunch en polea alta","3 × 15","De rodillas, enrollá el torso hacia abajo."],
+    ["Máquina de abdominales","3 × 12","Peso que te deje controlar la bajada."],
+    ["Press Pallof","3 × 12 por lado","Extendé los brazos sin dejar que la polea te gire."],
+    ["Elevación de rodillas en paralelas","3 × 12","Sin balancearte."]]},
+  { name:"Circuito de 10 minutos", focus:"Rápido: 40 s de trabajo, 20 s de pausa, 2 vueltas", ex:[
+    ["Crunch","40 s","Constante, sin frenar arriba."],
+    ["Mountain climbers","40 s","A buen ritmo."],
+    ["Toques de talón","40 s","Hombros despegados del piso."],
+    ["Bicicleta","40 s","Controlada."],
+    ["Plancha frontal","40 s","Aguantá hasta el final."]]},
+  { name:"Rueda y fitball", focus:"Control y rango largo", ex:[
+    ["Rueda abdominal","3 × 8","Desde las rodillas, llegá hasta donde controles."],
+    ["Crunch en fitball","3 × 15","Estirá bien atrás antes de subir."],
+    ["Navaja en fitball","3 × 10","Pies sobre la pelota, rodillas al pecho."],
+    ["Plancha sobre fitball","3 × 30 s","Antebrazos en la pelota."]]}
+];
+const NUDGES = [
+  "Con 10 minutos alcanza. Lo difícil es llegar.",
+  "Andá aunque sea a hacer los abdominales de hoy.",
+  "Diez minutos hoy valen más que una hora que nunca llega.",
+  "No hace falta la rutina completa. Hace falta ir.",
+  "Entrá, hacé abdominales y volvé. Eso ya cuenta."
+];
 
-    /*
-    La aplicación considera que el "día de medicación"
-    cambia a las 06:00 AM.
+/* ============================================================
+   DATOS
+   ============================================================ */
+function defaults(){
+  return {
+    settings:{ name:"", waterGoal:2000, kcalGoal:0, provider:"gemini",
+               keys:{gemini:"",claude:""}, models:{...DEFAULT_MODELS} },
+    days:{}, chat:[]
+  };
+}
+let S = load();
+function load(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY));
+    if(!raw) return defaults();
+    const d = defaults();
+    return { settings:{...d.settings,...raw.settings,
+                       keys:{...d.settings.keys,...(raw.settings||{}).keys},
+                       models:{...d.settings.models,...(raw.settings||{}).models}},
+             days:raw.days||{}, chat:raw.chat||[] };
+  }catch(e){ return defaults(); }
+}
+function save(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }
+  catch(e){
+    // sin espacio: soltamos las miniaturas de fotos del chat y reintentamos
+    S.chat.forEach(m=>delete m.thumb);
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }catch(e2){ toast("No se pudo guardar"); }
+  }
+}
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const pad = n => String(n).padStart(2,"0");
+const fmtKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseKey = k => { const [y,m,d]=k.split("-").map(Number); return new Date(y,m-1,d); };
+function todayKey(now=new Date()){
+  const d = new Date(now);
+  if(d.getHours() < DAY_CUTOFF_HOUR) d.setDate(d.getDate()-1);
+  return fmtKey(d);
+}
+function day(key=todayKey(), create=false){
+  if(!S.days[key]){
+    const blank = {foods:[],water:[],gym:null,abs:[]};
+    if(!create) return blank;
+    S.days[key] = blank;
+  }
+  const d = S.days[key];
+  d.foods ||= []; d.water ||= []; d.abs ||= [];
+  return d;
+}
+const waterOf = d => d.water.reduce((a,w)=>a+w.ml,0);
+const kcalOf  = d => d.foods.reduce((a,f)=>a+(f.kcal||0),0);
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num = n => Math.round(n).toLocaleString("es-AR");
+const litros = ml => (ml/1000).toLocaleString("es-AR",{maximumFractionDigits:2})+" L";
+const hora = iso => new Date(iso).toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});
+const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+function mealByHour(h=new Date().getHours()){
+  if(h < DAY_CUTOFF_HOUR) return "cena";
+  if(h < 11) return "desayuno";
+  if(h < 16) return "almuerzo";
+  if(h < 20) return "merienda";
+  return "cena";
+}
+function routineFor(key){
+  const d = parseKey(key);
+  const n = Math.round(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+  return ((n % ROUTINES.length)+ROUTINES.length) % ROUTINES.length;
+}
+function gymStreak(){
+  const d = parseKey(todayKey());
+  if(!(S.days[fmtKey(d)]?.gym?.done)) d.setDate(d.getDate()-1);
+  let n = 0;
+  while(S.days[fmtKey(d)]?.gym?.done){ n++; d.setDate(d.getDate()-1); }
+  return n;
+}
 
-    Esto permite que si tomás el medicamento de la noche
-    a las 02:00 AM, siga perteneciendo al día anterior.
-    */
+/* ============================================================
+   ACCIONES SOBRE EL REGISTRO
+   ============================================================ */
+function addWater(ml, key=todayKey()){
+  ml = Math.round(Number(ml));
+  if(!(ml>0) || ml>5000) return null;
+  const e = {id:uid(), t:new Date().toISOString(), ml};
+  day(key,true).water.push(e); save(); return e;
+}
+function addFood(f, key=todayKey()){
+  const n = v => { v = Math.round(Number(v)); return v>0 ? v : 0; };
+  const e = { id:uid(), t:new Date().toISOString(),
+    name:String(f.name||"Comida").slice(0,120),
+    meal: MEALS.some(m=>m[0]===f.meal) ? f.meal : mealByHour(),
+    kcal:n(f.kcal), p:n(f.p), c:n(f.c), g:n(f.g) };
+  day(key,true).foods.push(e); save(); return e;
+}
+function setGym(min, key=todayKey()){
+  min = Math.max(1, Math.round(Number(min)||10));
+  day(key,true).gym = {done:true, min, t:new Date().toISOString()}; save();
+}
+function removeEntry(key, kind, id){
+  const d = S.days[key]; if(!d) return;
+  if(kind==="comida") d.foods = d.foods.filter(x=>x.id!==id);
+  if(kind==="agua")   d.water = d.water.filter(x=>x.id!==id);
+  if(kind==="gym")    d.gym = null;
+  save();
+}
 
-    const DAY_CUTOFF_HOUR = 6;
+/* ============================================================
+   HOY
+   ============================================================ */
+function renderHoy(){
+  const key = todayKey(), d = day(key), goal = S.settings.waterGoal||2000;
+  const name = S.settings.name.trim();
+  document.getElementById("hello").textContent = name ? `Hola, ${name}` : "Hola";
+  document.getElementById("todayText").textContent =
+    cap(parseKey(key).toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"}));
 
+  // tanque
+  const ml = waterOf(d), pct = Math.min(100, Math.round(ml/goal*100));
+  const tank = document.getElementById("tank");
+  document.getElementById("water").style.height = pct+"%";
+  tank.classList.toggle("empty", pct===0);
+  tank.classList.toggle("half", pct>=18);
+  tank.setAttribute("aria-label", `Tanque de agua al ${pct}%`);
+  document.getElementById("waterPct").textContent = Math.round(ml/goal*100)+"%";
+  document.getElementById("waterBig").textContent = litros(ml);
+  const left = goal-ml;
+  document.getElementById("waterSub").textContent = left<=0
+    ? `Meta de ${litros(goal)} cumplida`
+    : `de ${litros(goal)}. Te faltan ${Math.ceil(left/250)} ${Math.ceil(left/250)===1?"vaso":"vasos"}.`;
 
-    /*
-    ============================================================
-    VARIABLES
-    ============================================================
-    */
+  // comidas
+  const kcal = kcalOf(d), kg = S.settings.kcalGoal;
+  document.getElementById("kcalBox").innerHTML = d.foods.length
+    ? (kg>0
+        ? `<p class="kcal-line">${num(kcal)} de ${num(kg)} kcal aprox.</p><div class="bar"><i style="width:${Math.min(100,kcal/kg*100)}%"></i></div>`
+        : `<p class="kcal-line">${num(kcal)} kcal aprox. en ${d.foods.length} ${d.foods.length===1?"registro":"registros"}</p>`)
+    : "";
+  document.getElementById("foods").innerHTML = d.foods.length
+    ? foodsHTML(d, key)
+    : `<div class="empty">Todavía no cargaste nada hoy. Escribile al nutri qué comiste o mandale una foto del plato.
+        <button class="btn leaf block-w" data-tab="chat">Contarle al nutri</button></div>`;
 
-    let currentCalendarDate = new Date();
+  // gym
+  const r = ROUTINES[routineFor(key)], streak = gymStreak();
+  document.getElementById("nudge").innerHTML = d.gym?.done
+    ? `<div class="nudge done"><p><b>Gym hecho</b>${d.gym.min} minutos hoy. ${streak>1?`Llevás ${streak} días seguidos.`:"Mañana, otra vez."}</p>
+       <button class="btn" data-tab="gym">Ver</button></div>`
+    : `<div class="nudge"><p><b>¿Vas al gym hoy?</b>${esc(NUDGES[routineFor(key)%NUDGES.length])} Toca ${esc(r.name.toLowerCase())}.</p>
+       <button class="btn ember" data-tab="gym">Rutina</button></div>`;
+}
+function foodsHTML(d, key){
+  return MEALS.map(([id,label])=>{
+    const items = d.foods.filter(f=>f.meal===id);
+    if(!items.length) return "";
+    return `<div class="meal-group"><div class="meal-name">${label}</div>${items.map(f=>
+      `<button class="food" data-act="food-open" data-key="${key}" data-id="${f.id}">
+         <b>${esc(f.name)}</b><span>${f.kcal?num(f.kcal)+" kcal":hora(f.t)}</span></button>`).join("")}</div>`;
+  }).join("");
+}
 
+/* ============================================================
+   GYM
+   ============================================================ */
+let timer = {left:600, running:false, end:0, id:null};
+function renderGym(){
+  const key = todayKey(), d = day(key), idx = routineFor(key), r = ROUTINES[idx];
+  const streak = gymStreak();
+  document.getElementById("streakText").textContent =
+    streak>0 ? `${streak} ${streak===1?"día seguido":"días seguidos"}. No cortes la racha.` : "Aunque sean 10 minutos, todos los días.";
 
-    /*
-    ============================================================
-    FECHA LÓGICA
-    ============================================================
-    */
+  // semana (lunes a domingo)
+  const t = parseKey(key), monday = new Date(t);
+  monday.setDate(t.getDate()-((t.getDay()+6)%7));
+  let week = "";
+  ["L","M","X","J","V","S","D"].forEach((l,i)=>{
+    const dd = new Date(monday); dd.setDate(monday.getDate()+i);
+    const k = fmtKey(dd);
+    week += `<div class="${S.days[k]?.gym?.done?"yes":""} ${k===key?"now":""}">${l}<i></i></div>`;
+  });
 
-    function getMedicationDate(date = new Date()) {
+  const done = d.gym?.done;
+  const mins = [10,20,30,45,60];
+  const tomorrow = new Date(t); tomorrow.setDate(t.getDate()+1);
 
-        const adjustedDate = new Date(date);
+  document.getElementById("gymBody").innerHTML = `
+    <div class="block">
+      ${done
+        ? `<div class="nudge done"><p><b>Hoy fuiste</b>¿Cuánto tiempo?</p></div>
+           <div class="chips" style="margin-top:12px">${mins.map(m=>`<button class="chip ${d.gym.min===m?"on":""}" data-act="gym-min" data-min="${m}">${m===60?"1 h o más":m+" min"}</button>`).join("")}
+           <button class="chip" data-act="gym-off">Desmarcar</button></div>`
+        : `<button class="btn ember block-w" data-act="gym-on" style="min-height:54px;font-size:17px">Fui al gym hoy</button>`}
+      <div class="week">${week}</div>
+    </div>
 
-        /*
-        Si son antes de las 06:00,
-        pertenecen al día anterior.
-        */
+    <div class="block">
+      <div class="row-head"><h2>Abdominales de hoy</h2><span class="sub">${d.abs.length}/${r.ex.length}</span></div>
+      <p class="sub" style="margin-bottom:6px"><b style="color:var(--ink)">${esc(r.name)}.</b> ${esc(r.focus)}.</p>
+      ${r.ex.map((e,i)=>`<button class="ex ${d.abs.includes(i)?"ok":""}" data-act="ex" data-i="${i}">
+          <span class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+          <span class="ex-body"><span class="ex-name">${esc(e[0])}</span><br><span class="ex-tip">${esc(e[2])}</span></span>
+          <span class="ex-dose">${esc(e[1])}</span></button>`).join("")}
+      <p class="hint">Mañana toca: ${esc(ROUTINES[routineFor(fmtKey(tomorrow))].name.toLowerCase())}.</p>
+    </div>
 
-        if (adjustedDate.getHours() < DAY_CUTOFF_HOUR) {
+    <div class="block">
+      <div class="timer">
+        <div><div class="sub">Solo 10 minutos</div><div class="clock" id="clock">${clockText()}</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn ember" data-act="timer-toggle" id="timerBtn">${timer.running?"Pausar":(timer.left<600&&timer.left>0?"Seguir":"Empezar")}</button>
+          <button class="btn" data-act="timer-reset" style="background:var(--bg)">Reiniciar</button>
+        </div>
+      </div>
+      <p class="hint">Cuando llega a cero, el día queda marcado como hecho.</p>
+    </div>
 
-            adjustedDate.setDate(
-                adjustedDate.getDate() - 1
-            );
+    <div class="block">
+      <h2 style="margin-bottom:4px">Todas las rutinas</h2>
+      ${ROUTINES.map((x,i)=>`<details><summary>${esc(x.name)}<span>${i===idx?"Hoy":nextDayOf(i,t)}</span></summary>
+        <ul>${x.ex.map(e=>`<li><span>${esc(e[0])}</span><span>${esc(e[1])}</span></li>`).join("")}</ul></details>`).join("")}
+    </div>`;
+}
+function nextDayOf(i, from){
+  for(let n=1;n<=ROUTINES.length;n++){
+    const d = new Date(from); d.setDate(from.getDate()+n);
+    if(routineFor(fmtKey(d))===i) return n===1 ? "Mañana" : cap(d.toLocaleDateString("es-AR",{weekday:"long"}));
+  }
+  return "";
+}
+function clockText(){ const s=Math.max(0,Math.ceil(timer.left)); return `${pad(Math.floor(s/60))}:${pad(s%60)}`; }
+function timerToggle(){
+  if(timer.running){ clearInterval(timer.id); timer.running=false; }
+  else{
+    if(timer.left<=0) timer.left=600;
+    timer.end = Date.now()+timer.left*1000; timer.running=true;
+    timer.id = setInterval(()=>{
+      timer.left = (timer.end-Date.now())/1000;
+      const c = document.getElementById("clock"); if(c) c.textContent = clockText();
+      if(timer.left<=0){
+        clearInterval(timer.id); timer.running=false; timer.left=600;
+        const d = day(todayKey());
+        setGym(Math.max(10, d.gym?.min||0));
+        if(navigator.vibrate) navigator.vibrate([200,100,200]);
+        toast("10 minutos hechos. Día marcado.");
+        renderAll();
+      }
+    },250);
+  }
+  renderGym();
+}
 
-        }
-
-        return formatDate(adjustedDate);
-
+/* ============================================================
+   MES
+   ============================================================ */
+let cal = (()=>{ const d=parseKey(todayKey()); return new Date(d.getFullYear(),d.getMonth(),1); })();
+function renderMes(){
+  const y = cal.getFullYear(), m = cal.getMonth(), tk = todayKey();
+  const first = (new Date(y,m,1).getDay()+6)%7, n = new Date(y,m+1,0).getDate();
+  const goal = S.settings.waterGoal||2000;
+  let cells = "";
+  for(let i=0;i<first;i++) cells += `<div class="cell blank"></div>`;
+  let logged=0, waterSum=0, waterDays=0, goalDays=0, kcalSum=0, kcalDays=0, gymDays=0, gymMin=0;
+  for(let dnum=1;dnum<=n;dnum++){
+    const k = `${y}-${pad(m+1)}-${pad(dnum)}`, d = S.days[k] ? day(k) : null;
+    let cls = "cell", dots = "";
+    if(k>tk) cls += " future";
+    if(k===tk) cls += " today";
+    if(d){
+      const w = waterOf(d), kc = kcalOf(d);
+      if(w>0 || d.foods.length || d.gym?.done) logged++;
+      if(w>0){ waterSum+=w; waterDays++; cls += w>=goal ? " w3" : w>=goal/2 ? " w2" : " w1"; }
+      if(w>=goal) goalDays++;
+      if(kc>0){ kcalSum+=kc; kcalDays++; }
+      if(d.foods.length) dots += `<i class="d-food"></i>`;
+      if(d.gym?.done){ gymDays++; gymMin+=d.gym.min||0; dots += `<i class="d-gym"></i>`; }
     }
+    cells += `<button class="${cls}" data-act="day" data-key="${k}" ${k>tk?"disabled":""}>${dnum}<span class="dots">${dots}</span></button>`;
+  }
+  const title = cal.toLocaleDateString("es-AR",{month:"long",year:"numeric"});
+  document.getElementById("mesBody").innerHTML = `
+    <div class="block">
+      <div class="cal-head">
+        <button class="icon-btn" data-act="month" data-dir="-1" aria-label="Mes anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <h2>${esc(cap(title))}</h2>
+        <button class="icon-btn" data-act="month" data-dir="1" aria-label="Mes siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+      <div class="dow">${["L","M","X","J","V","S","D"].map(l=>`<div>${l}</div>`).join("")}</div>
+      <div class="grid">${cells}</div>
+      <div class="legend">
+        <span><i class="sq"></i>Más azul, más agua</span>
+        <span><i class="d-food"></i>Comidas cargadas</span>
+        <span><i class="d-gym"></i>Gym</span>
+      </div>
+    </div>
+    <div class="block">
+      <h2 style="margin-bottom:14px">Resumen del mes</h2>
+      ${logged ? `<div class="stats">
+        <div class="stat"><b>${logged}</b><span>${logged===1?"día con registro":"días con registro"}</span></div>
+        <div class="stat"><b>${gymDays}</b><span>${gymDays===1?"día de gym":"días de gym"}${gymMin?`, ${num(gymMin)} min`:""}</span></div>
+        <div class="stat"><b>${waterDays?litros(waterSum/waterDays):"0 L"}</b><span>de agua por día</span></div>
+        <div class="stat"><b>${goalDays}</b><span>${goalDays===1?"día":"días"} con la meta de agua</span></div>
+        <div class="stat"><b>${kcalDays?num(kcalSum/kcalDays):"0"}</b><span>kcal por día, aprox.</span></div>
+      </div>
+      <button class="btn block-w" data-act="csv" style="margin-top:22px">Descargar el mes en planilla (CSV)</button>`
+      : `<div class="empty">No hay registros en este mes.</div>`}
+    </div>`;
+}
+function dayDetail(key){
+  const d = day(key), goal = S.settings.waterGoal||2000, w = waterOf(d);
+  const title = cap(parseKey(key).toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"}));
+  const any = w>0 || d.foods.length || d.gym?.done;
+  openSheet(`
+    <div class="sheet-top"><h2>${esc(cap(title))}</h2><button class="link" data-act="sheet-close">Cerrar</button></div>
+    ${any ? `
+      <div class="stats" style="margin:14px 0 6px">
+        <div class="stat"><b>${litros(w)}</b><span>agua, ${Math.round(w/goal*100)}% de la meta</span></div>
+        <div class="stat"><b>${d.gym?.done ? d.gym.min+" min" : "No"}</b><span>gym${d.abs.length?`, ${d.abs.length} ejercicios de abdominales`:""}</span></div>
+        ${kcalOf(d)?`<div class="stat"><b>${num(kcalOf(d))}</b><span>kcal aprox.</span></div>`:""}
+      </div>
+      ${d.foods.length ? foodsHTML(d,key) : `<p class="sub" style="margin-top:12px">Sin comidas cargadas.</p>`}`
+    : `<p class="sub" style="margin-top:8px">No hay registros de este día.</p>`}`);
+}
+function exportCSV(){
+  const y = cal.getFullYear(), m = cal.getMonth(), pre = `${y}-${pad(m+1)}-`;
+  const q = v => `"${String(v??"").replace(/"/g,'""')}"`;
+  const rows = [["fecha","hora","tipo","detalle","momento","kcal","proteinas_g","carbos_g","grasas_g","agua_ml","gym_min"]];
+  Object.keys(S.days).filter(k=>k.startsWith(pre)).sort().forEach(k=>{
+    const d = day(k);
+    d.foods.forEach(f=>rows.push([k,hora(f.t),"comida",f.name,f.meal,f.kcal||"",f.p||"",f.c||"",f.g||"","",""]));
+    d.water.forEach(w=>rows.push([k,hora(w.t),"agua","","","","","","",w.ml,""]));
+    if(d.gym?.done) rows.push([k,hora(d.gym.t),"gym","","","","","","","",d.gym.min]);
+  });
+  download(`saludable-${y}-${pad(m+1)}.csv`, "\ufeff"+rows.map(r=>r.map(q).join(",")).join("\n"), "text/csv");
+}
+function download(name, text, type){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text],{type}));
+  a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
 
+/* ============================================================
+   CHAT CON IA
+   ============================================================ */
+let pendingImg = null;   // {data: base64 jpeg, thumb: dataURL}
+let busy = false;
+const hasKey = () => Boolean(S.settings.keys[S.settings.provider]);
 
-    /*
-    ============================================================
-    FORMATO YYYY-MM-DD
-    ============================================================
-    */
+function renderChat(){
+  const box = document.getElementById("msgs");
+  document.getElementById("composer").hidden = !hasKey();
+  if(!hasKey()){
+    box.innerHTML = `<div class="setup">
+      <h2>Falta conectar la IA</h2>
+      <p class="sub" style="margin-top:6px">El nutri usa Google Gemini, que tiene un plan gratis. Se hace una sola vez:</p>
+      <ol>
+        <li>Entrá a <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> con tu cuenta de Google.</li>
+        <li>Tocá “Create API key” y copiala.</li>
+        <li>Pegala acá abajo.</li>
+      </ol>
+      <input class="in" id="quickKey" placeholder="Pegá tu clave" autocomplete="off" autocapitalize="off" spellcheck="false" style="background:var(--surface)">
+      <button class="btn leaf block-w" data-act="quick-key" style="margin-top:10px">Guardar clave</button>
+      <p class="hint">La clave queda guardada solo en este teléfono, no se sube al repositorio. Si preferís usar Claude, se cambia en Ajustes.</p>
+    </div>`;
+    return;
+  }
+  let html = "";
+  if(!S.chat.length){
+    html = `<div class="msg assistant">Hola${S.settings.name?", "+esc(S.settings.name):""}. Contame qué vas comiendo y tomando y lo voy anotando. También podés mandarme una foto del plato.</div>
+      <div class="suggest">
+        ${["Desayuné café con leche y dos tostadas con queso","Tomé dos vasos de agua","¿Qué puedo cenar liviano hoy?"].map(s=>`<button class="chip" data-act="suggest">${s}</button>`).join("")}
+      </div>`;
+  }
+  S.chat.forEach((m,mi)=>{
+    html += `<div class="msg ${m.role}">${m.thumb?`<img src="${m.thumb}" alt="Foto enviada">`:(m.img?"📷 Foto\n":"")}${esc(m.text)}${
+      m.logged?.length ? `<div class="logged">${m.logged.map((l,li)=>
+        `<button class="${l.kind} ${l.undone?"undone":""}" data-act="undo" data-m="${mi}" data-l="${li}" ${l.undone?"disabled":""} aria-label="Deshacer ${esc(l.label)}">${esc(l.label)}${l.undone?"":" ✕"}</button>`).join("")}</div>` : ""}</div>`;
+  });
+  if(busy) html += `<div class="typing">Escribiendo…</div>`;
+  box.innerHTML = html;
+  box.scrollTop = box.scrollHeight;
+  document.getElementById("sendBtn").disabled = busy;
+}
 
-    function formatDate(date) {
+function systemPrompt(){
+  const now = new Date(), key = todayKey(), d = day(key), s = S.settings;
+  const foods = d.foods.map(f=>`- ${f.meal}: ${f.name}${f.kcal?` (~${f.kcal} kcal)`:""}`).join("\n") || "- nada todavía";
+  let last = "";
+  for(let i=1;i<=6;i++){
+    const dd = parseKey(key); dd.setDate(dd.getDate()-i);
+    const k = fmtKey(dd), x = S.days[k]; if(!x) continue;
+    const xd = day(k);
+    last += `- ${k}: agua ${waterOf(xd)} ml, ~${kcalOf(xd)} kcal en ${xd.foods.length} registros, gym ${xd.gym?.done?"sí":"no"}\n`;
+  }
+  return `Sos el nutricionista personal de ${s.name||"la persona usuaria"} dentro de su app de hábitos saludables. Hablás en español rioplatense (vos), con mensajes cortos, cálidos y directos, sin sermonear y sin formato markdown.
 
-        const year = date.getFullYear();
+TU TRABAJO
+1. Registrar lo que come y toma. 2. Responder dudas de alimentación con consejos prácticos. 3. Alentar a ir al gimnasio todos los días, aunque sean 10 minutos.
 
-        const month = String(
-            date.getMonth() + 1
-        ).padStart(2, "0");
+CÓMO REGISTRAR
+- Si el mensaje o la foto muestran algo que ya consumió y se entiende razonablemente, registralo directo en "acciones", estimando porción, calorías y macros con criterio. No pidas permiso ni confirmación.
+- Preguntá solamente cuando falte un dato que cambie mucho la estimación (por ejemplo: no se distingue qué es en la foto, o la cantidad es totalmente ambigua). En ese caso hacé UNA pregunta corta y no registres ese ítem hasta que te responda.
+- Un ítem por alimento o plato (por ejemplo "Milanesa de pollo con ensalada"). Usá nombres cortos.
+- "momento" es desayuno, almuerzo, merienda, cena o snack. Si no lo dice, deducilo por la hora actual.
+- Agua, soda y agua saborizada sin azúcar: tipo "agua" con "ml" (un vaso = 250, una botella chica = 500). Mate, té y café sin azúcar también cuentan como agua.
+- Bebidas con calorías (gaseosa, jugo, cerveza, café con leche, licuado): tipo "comida" con sus kcal.
+- Si dice que fue al gimnasio o entrenó: tipo "gym" con "minutos" (si no dice cuánto, 10 si lo sugiere corto o 45 si no hay pista).
+- Si solo pregunta o conversa, "acciones" va vacío. Nunca registres algo que piensa comer en el futuro.
+- En "respuesta" confirmá en una línea qué anotaste y, si viene al caso, sumá un comentario breve y útil (qué le falta hoy, una mejora simple, ánimo para el gym). No repitas la lista completa del día.
+- No das diagnósticos médicos; ante temas de salud serios, sugerí consultar a un profesional.
 
-        const day = String(
-            date.getDate()
-        ).padStart(2, "0");
+CONTEXTO
+Ahora: ${now.toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"})}, ${pad(now.getHours())}:${pad(now.getMinutes())} hs.
+Meta de agua: ${s.waterGoal} ml.${s.kcalGoal?` Meta de calorías: ${s.kcalGoal} kcal.`:""}
+Hoy lleva: agua ${waterOf(d)} ml, ~${kcalOf(d)} kcal, gym ${d.gym?.done?`sí (${d.gym.min} min)`:"todavía no"}.
+Comidas de hoy:
+${foods}
+Rutina de abdominales de hoy: ${ROUTINES[routineFor(key)].name}.
+${last?`Días anteriores:\n${last}`:""}`;
+}
 
-        return `${year}-${month}-${day}`;
+const ACTION_PROPS = {
+  tipo:{type:"string",enum:["comida","agua","gym"]},
+  nombre:{type:"string",description:"Nombre corto del alimento o plato (solo comida)"},
+  momento:{type:"string",enum:["desayuno","almuerzo","merienda","cena","snack"]},
+  kcal:{type:"number"}, proteinas:{type:"number",description:"gramos"},
+  carbos:{type:"number",description:"gramos"}, grasas:{type:"number",description:"gramos"},
+  ml:{type:"number",description:"mililitros (solo agua)"},
+  minutos:{type:"number",description:"minutos de gimnasio (solo gym)"}
+};
+const SCHEMA = { type:"object",
+  properties:{ respuesta:{type:"string",description:"Mensaje para la persona"},
+               acciones:{type:"array",items:{type:"object",properties:ACTION_PROPS,required:["tipo"]}} },
+  required:["respuesta","acciones"] };
+function upper(s){   // Gemini pide los tipos en mayúsculas
+  if(Array.isArray(s)) return s.map(upper);
+  if(s && typeof s==="object"){ const o={}; for(const k in s) o[k] = k==="type" ? s[k].toUpperCase() : (k==="enum"||k==="required"? s[k] : upper(s[k])); return o; }
+  return s;
+}
 
+function historyForAI(){
+  const out = [];
+  S.chat.slice(-14).forEach(m=>{
+    if(m.role!=="user" && m.role!=="assistant") return;
+    let text = m.text||"";
+    if(m.role==="user" && m.img) text = "[envió una foto] "+text;
+    if(m.role==="assistant" && m.logged?.length) text += `\n[Registrado: ${m.logged.filter(l=>!l.undone).map(l=>l.label).join(", ")||"nada"}]`;
+    text = text.trim() || "(sin texto)";
+    const prev = out[out.length-1];
+    if(prev && prev.role===m.role) prev.text += "\n"+text; else out.push({role:m.role,text});
+  });
+  while(out.length && out[0].role!=="user") out.shift();
+  return out;
+}
+
+async function callAI(image){
+  const p = S.settings.provider, key = S.settings.keys[p], model = S.settings.models[p] || DEFAULT_MODELS[p];
+  const hist = historyForAI(), sys = systemPrompt();
+  let res;
+  try{
+    if(p==="claude"){
+      const messages = hist.map((m,i)=>{
+        const last = i===hist.length-1;
+        return { role:m.role, content: last && image
+          ? [{type:"image",source:{type:"base64",media_type:"image/jpeg",data:image}},{type:"text",text:m.text}]
+          : m.text };
+      });
+      res = await fetch("https://api.anthropic.com/v1/messages",{ method:"POST",
+        headers:{ "content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true" },
+        body:JSON.stringify({ model, max_tokens:1024, system:sys, messages,
+          tools:[{name:"responder",description:"Responde a la persona y registra lo que haya consumido.",input_schema:SCHEMA}],
+          tool_choice:{type:"tool",name:"responder"} }) });
+    }else{
+      const contents = hist.map((m,i)=>{
+        const parts = [{text:m.text}];
+        if(i===hist.length-1 && image) parts.unshift({inlineData:{mimeType:"image/jpeg",data:image}});
+        return { role:m.role==="assistant"?"model":"user", parts };
+      });
+      res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{ method:"POST",
+        headers:{ "content-type":"application/json","x-goog-api-key":key },
+        body:JSON.stringify({ systemInstruction:{parts:[{text:sys}]}, contents,
+          generationConfig:{ responseMimeType:"application/json", responseSchema:upper(SCHEMA), temperature:0.4 } }) });
     }
+  }catch(e){ throw new Error("No hay conexión. Probá de nuevo cuando tengas internet."); }
 
+  let data = null; try{ data = await res.json(); }catch(e){}
+  if(!res.ok){
+    const detail = data?.error?.message || "";
+    if(res.status===429) throw new Error("Llegaste al límite de uso de la IA por ahora. Probá en un rato.");
+    if(res.status===401 || res.status===403 || /api key|api_key|authentication/i.test(detail)) throw new Error("La clave de IA no es válida. Revisala en Ajustes.");
+    if(res.status===404) throw new Error(`El modelo "${model}" no existe o ya no está disponible. Cambialo en Ajustes.`);
+    throw new Error("La IA devolvió un error. "+detail.slice(0,140));
+  }
+  let out;
+  if(p==="claude"){
+    out = data.content?.find(b=>b.type==="tool_use")?.input;
+    if(!out){ const t = data.content?.find(b=>b.type==="text")?.text; if(t) out = {respuesta:t,acciones:[]}; }
+  }else{
+    const text = (data.candidates?.[0]?.content?.parts||[]).filter(x=>x.text && !x.thought).map(x=>x.text).join("");
+    try{ out = JSON.parse(text); }
+    catch(e){ const a=text.indexOf("{"), b=text.lastIndexOf("}"); try{ out = JSON.parse(text.slice(a,b+1)); }catch(e2){ if(text) out={respuesta:text,acciones:[]}; } }
+  }
+  if(!out) throw new Error("La IA no pudo responder a eso. Probá escribirlo de otra forma.");
+  return out;
+}
 
-    /*
-    ============================================================
-    OBTENER DATOS
-    ============================================================
-    */
-
-    function getData() {
-
-        const data =
-            localStorage.getItem("medicationData");
-
-        if (!data) {
-            return {};
-        }
-
-        return JSON.parse(data);
-
+function applyActions(list){
+  const key = todayKey(), logged = [];
+  (Array.isArray(list)?list:[]).forEach(a=>{
+    if(a.tipo==="agua"){
+      const e = addWater(a.ml||250, key);
+      if(e) logged.push({kind:"agua",id:e.id,key,label:`Agua ${e.ml} ml`});
+    }else if(a.tipo==="comida" && a.nombre){
+      const e = addFood({name:a.nombre,meal:a.momento,kcal:a.kcal,p:a.proteinas,c:a.carbos,g:a.grasas}, key);
+      logged.push({kind:"comida",id:e.id,key,label:e.name+(e.kcal?` ${e.kcal} kcal`:"")});
+    }else if(a.tipo==="gym"){
+      setGym(a.minutos||10, key);
+      logged.push({kind:"gym",id:"gym",key,label:`Gym ${day(key).gym.min} min`});
     }
-
-
-    /*
-    ============================================================
-    GUARDAR DATOS
-    ============================================================
-    */
-
-    function saveData(data) {
-
-        localStorage.setItem(
-            "medicationData",
-            JSON.stringify(data)
-        );
-
-    }
-
-
-    /*
-    ============================================================
-    MARCAR / DESMARCAR MEDICAMENTO
-    ============================================================
-    */
-
-    function toggleMedication(type) {
-
-        const date =
-            getMedicationDate();
-
-        const data =
-            getData();
-
-
-        if (!data[date]) {
-
-            data[date] = {
-                morning: null,
-                night: null
-            };
-
-        }
-
-
-        /*
-        Si ya estaba tomado,
-        permite deshacerlo.
-        */
-
-        if (data[date][type]) {
-
-            data[date][type] = null;
-
-        } else {
-
-            data[date][type] = {
-                time: new Date().toISOString()
-            };
-
-        }
-
-
-        saveData(data);
-
-        updateToday();
-
-        renderCalendar();
-
-        updateStats();
-
-    }
-
-
-    /*
-    ============================================================
-    ACTUALIZAR PANTALLA PRINCIPAL
-    ============================================================
-    */
-
-    function updateToday() {
-
-        const date =
-            getMedicationDate();
-
-        const data =
-            getData();
-
-        const todayData =
-            data[date] || {
-                morning: null,
-                night: null
-            };
-
-
-        updateButton(
-            "morning",
-            todayData.morning
-        );
-
-        updateButton(
-            "night",
-            todayData.night
-        );
-
-
-        const morningTaken =
-            Boolean(todayData.morning);
-
-        const nightTaken =
-            Boolean(todayData.night);
-
-
-        let completed = 0;
-
-        if (morningTaken) completed++;
-        if (nightTaken) completed++;
-
-
-        document.getElementById(
-            "progressText"
-        ).textContent =
-            `${completed} / 2`;
-
-
-        document.getElementById(
-            "progressFill"
-        ).style.width =
-            `${completed * 50}%`;
-
-
-        const message =
-            document.getElementById(
-                "completeMessage"
-            );
-
-
-        if (completed === 2) {
-
-            message.classList.add("show");
-
-        } else {
-
-            message.classList.remove("show");
-
-        }
-
-
-        updateDateText();
-
-    }
-
-
-    /*
-    ============================================================
-    ACTUALIZAR BOTÓN
-    ============================================================
-    */
-
-    function updateButton(type, value) {
-
-        const button =
-            document.getElementById(
-                type + "Button"
-            );
-
-        const timeElement =
-            document.getElementById(
-                type + "Time"
-            );
-
-
-        if (value) {
-
-            button.classList.add("taken");
-
-            button.textContent =
-                "✓ Tomado";
-
-            const date =
-                new Date(value.time);
-
-            timeElement.textContent =
-                `Registrado a las ${formatTime(date)}`;
-
-        } else {
-
-            button.classList.remove("taken");
-
-            button.textContent =
-                "○ Marcar como tomado";
-
-            timeElement.textContent =
-                "";
-
-        }
-
-    }
-
-
-    /*
-    ============================================================
-    FORMATO DE HORA
-    ============================================================
-    */
-
-    function formatTime(date) {
-
-        return date.toLocaleTimeString(
-            "es-AR",
-            {
-                hour: "2-digit",
-                minute: "2-digit"
-            }
-        );
-
-    }
-
-
-    /*
-    ============================================================
-    FECHA DE HOY
-    ============================================================
-    */
-
-    function updateDateText() {
-
-        const date =
-            new Date();
-
-        const logicalDate =
-            getMedicationDate(date);
-
-        const [
-            year,
-            month,
-            day
-        ] = logicalDate.split("-");
-
-
-        const dateObject =
-            new Date(
-                Number(year),
-                Number(month) - 1,
-                Number(day)
-            );
-
-
-        const text =
-            dateObject.toLocaleDateString(
-                "es-AR",
-                {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long"
-                }
-            );
-
-
-        document.getElementById(
-            "todayDate"
-        ).textContent =
-            text.charAt(0).toUpperCase()
-            + text.slice(1);
-
-    }
-
-
-    /*
-    ============================================================
-    CALENDARIO
-    ============================================================
-    */
-
-    function renderCalendar() {
-
-        const year =
-            currentCalendarDate.getFullYear();
-
-        const month =
-            currentCalendarDate.getMonth();
-
-
-        const monthName =
-            currentCalendarDate.toLocaleDateString(
-                "es-AR",
-                {
-                    month: "long",
-                    year: "numeric"
-                }
-            );
-
-
-        document.getElementById(
-            "monthTitle"
-        ).textContent =
-            monthName.charAt(0).toUpperCase()
-            + monthName.slice(1);
-
-
-        const grid =
-            document.getElementById(
-                "calendarGrid"
-            );
-
-
-        grid.innerHTML = "";
-
-
-        /*
-        Primer día del mes.
-
-        JavaScript:
-        domingo = 0
-        lunes = 1
-        ...
-
-        Lo convertimos para que lunes sea 0.
-        */
-
-        const firstDay =
-            new Date(
-                year,
-                month,
-                1
-            ).getDay();
-
-
-        const mondayIndex =
-            firstDay === 0
-                ? 6
-                : firstDay - 1;
-
-
-        const daysInMonth =
-            new Date(
-                year,
-                month + 1,
-                0
-            ).getDate();
-
-
-        /*
-        Espacios antes del primer día
-        */
-
-        for (
-            let i = 0;
-            i < mondayIndex;
-            i++
-        ) {
-
-            const empty =
-                document.createElement(
-                    "div"
-                );
-
-            empty.className =
-                "day empty";
-
-            grid.appendChild(empty);
-
-        }
-
-
-        const data =
-            getData();
-
-
-        /*
-        Crear días
-        */
-
-        for (
-            let day = 1;
-            day <= daysInMonth;
-            day++
-        ) {
-
-            const dayElement =
-                document.createElement(
-                    "div"
-                );
-
-
-            dayElement.className =
-                "day";
-
-
-            const date =
-                `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-
-
-            const dayData =
-                data[date];
-
-
-            /*
-            Estado del día
-            */
-
-            if (dayData) {
-
-                const morning =
-                    Boolean(dayData.morning);
-
-                const night =
-                    Boolean(dayData.night);
-
-
-                if (morning && night) {
-
-                    dayElement.classList.add(
-                        "complete"
-                    );
-
-                } else if (
-                    morning || night
-                ) {
-
-                    dayElement.classList.add(
-                        "partial"
-                    );
-
-                } else {
-
-                    dayElement.classList.add(
-                        "missed"
-                    );
-
-                }
-
-            }
-
-
-            /*
-            Marcar día actual
-            */
-
-            if (
-                date ===
-                getMedicationDate()
-            ) {
-
-                dayElement.classList.add(
-                    "today"
-                );
-
-            }
-
-
-            dayElement.textContent =
-                day;
-
-
-            /*
-            Click en un día:
-            mostrar información.
-            */
-
-            dayElement.onclick =
-                function () {
-
-                    showDayDetails(
-                        date,
-                        dayData
-                    );
-
-                };
-
-
-            grid.appendChild(
-                dayElement
-            );
-
-        }
-
-    }
-
-
-    /*
-    ============================================================
-    CAMBIAR MES
-    ============================================================
-    */
-
-    function changeMonth(direction) {
-
-        currentCalendarDate.setMonth(
-            currentCalendarDate.getMonth()
-            + direction
-        );
-
-        renderCalendar();
-
-    }
-
-
-    /*
-    ============================================================
-    DETALLE DE DÍA
-    ============================================================
-    */
-
-    function showDayDetails(
-        date,
-        dayData
-    ) {
-
-        if (!dayData) {
-
-            alert(
-                `No hay registros para ${formatDateForDisplay(date)}.`
-            );
-
-            return;
-
-        }
-
-
-        let message =
-            `${formatDateForDisplay(date)}\n\n`;
-
-
-        if (dayData.morning) {
-
-            const time =
-                formatTime(
-                    new Date(
-                        dayData.morning.time
-                    )
-                );
-
-            message +=
-                `☀️ Mañana: ✓ ${time}\n`;
-
-        } else {
-
-            message +=
-                `☀️ Mañana: ✗\n`;
-
-        }
-
-
-        if (dayData.night) {
-
-            const time =
-                formatTime(
-                    new Date(
-                        dayData.night.time
-                    )
-                );
-
-            message +=
-                `🌙 Noche: ✓ ${time}\n`;
-
-        } else {
-
-            message +=
-                `🌙 Noche: ✗\n`;
-
-        }
-
-
-        alert(message);
-
-    }
-
-
-    /*
-    ============================================================
-    FORMATO DE FECHA PARA ALERTAS
-    ============================================================
-    */
-
-    function formatDateForDisplay(
-        dateString
-    ) {
-
-        const [
-            year,
-            month,
-            day
-        ] = dateString.split("-");
-
-
-        const date =
-            new Date(
-                Number(year),
-                Number(month) - 1,
-                Number(day)
-            );
-
-
-        return date.toLocaleDateString(
-            "es-AR",
-            {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric"
-            }
-        );
-
-    }
-
-
-    /*
-    ============================================================
-    ESTADÍSTICAS
-    ============================================================
-    */
-
-    function updateStats() {
-
-        const data =
-            getData();
-
-
-        let completedDays = 0;
-
-
-        Object.values(data).forEach(
-            day => {
-
-                if (
-                    day.morning &&
-                    day.night
-                ) {
-
-                    completedDays++;
-
-                }
-
-            }
-        );
-
-
-        document.getElementById(
-            "completedDays"
-        ).textContent =
-            completedDays;
-
-
-        /*
-        Calcular racha actual
-        */
-
-        let streak = 0;
-
-        const current =
-            new Date();
-
-
-        /*
-        Empezamos desde el día lógico actual.
-        */
-
-        let date =
-            new Date(
-                current.getFullYear(),
-                current.getMonth(),
-                current.getDate()
-            );
-
-
-        while (true) {
-
-            const dateString =
-                formatDate(date);
-
-
-            const dayData =
-                data[dateString];
-
-
-            if (
-                dayData &&
-                dayData.morning &&
-                dayData.night
-            ) {
-
-                streak++;
-
-                date.setDate(
-                    date.getDate() - 1
-                );
-
-            } else {
-
-                break;
-
-            }
-
-        }
-
-
-        document.getElementById(
-            "currentStreak"
-        ).textContent =
-            streak;
-
-    }
-
-
-    /*
-    ============================================================
-    RESTABLECER
-    ============================================================
-    */
-
-    function resetAllData() {
-
-        const confirmation =
-            confirm(
-                "¿Seguro que querés borrar todo el historial?"
-            );
-
-
-        if (!confirmation) {
-            return;
-        }
-
-
-        localStorage.removeItem(
-            "medicationData"
-        );
-
-
-        updateToday();
-
-        renderCalendar();
-
-        updateStats();
-
-    }
-
-
-    /*
-    ============================================================
-    INICIAR APP
-    ============================================================
-    */
-
-    updateToday();
-
-    renderCalendar();
-
-    updateStats();
-
-
-    /*
-    Actualizar cada minuto.
-
-    Esto permite que si dejás la aplicación abierta
-    y pasa la hora de corte, se actualice correctamente.
-    */
-
-    setInterval(
-        () => {
-
-            updateToday();
-
-        },
-        60 * 1000
-    );
-
+  });
+  return logged;
+}
+
+async function send(){
+  if(busy) return;
+  const ta = document.getElementById("chatText");
+  const text = ta.value.trim(), img = pendingImg;
+  if(!text && !img) return;
+  S.chat.push({role:"user", text, img:Boolean(img), thumb:img?.thumb, t:Date.now()});
+  ta.value = ""; ta.style.height = "auto"; clearImg();
+  busy = true; trimChat(); save(); renderChat();
+  try{
+    const out = await callAI(img?.data);
+    const logged = applyActions(out.acciones);
+    S.chat.push({role:"assistant", text:String(out.respuesta||"Listo."), logged, t:Date.now()});
+  }catch(e){
+    S.chat.push({role:"error", text:e.message, t:Date.now()});
+  }
+  busy = false; trimChat(); save(); renderAll();
+}
+function trimChat(){
+  if(S.chat.length>80) S.chat = S.chat.slice(-80);
+  S.chat.slice(0,-12).forEach(m=>delete m.thumb);   // solo las últimas fotos conservan miniatura
+}
+function clearImg(){ pendingImg = null; document.getElementById("preview").hidden = true; document.getElementById("imgInput").value=""; }
+function pickImage(file){
+  if(!file) return;
+  const url = URL.createObjectURL(file), im = new Image();
+  im.onload = ()=>{
+    const draw = max => {
+      const k = Math.min(1, max/Math.max(im.width,im.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(im.width*k); c.height = Math.round(im.height*k);
+      c.getContext("2d").drawImage(im,0,0,c.width,c.height); return c;
+    };
+    const big = draw(1024).toDataURL("image/jpeg",.82), thumb = draw(220).toDataURL("image/jpeg",.6);
+    pendingImg = { data:big.split(",")[1], thumb };
+    document.getElementById("previewImg").src = thumb;
+    document.getElementById("preview").hidden = false;
+    URL.revokeObjectURL(url);
+  };
+  im.onerror = ()=>{ toast("No se pudo abrir esa foto"); URL.revokeObjectURL(url); };
+  im.src = url;
+}
+
+/* ============================================================
+   HOJAS (formularios y detalle)
+   ============================================================ */
+function openSheet(html){ document.getElementById("sheetCard").innerHTML = html; document.getElementById("sheet").hidden = false; }
+function closeSheet(){ document.getElementById("sheet").hidden = true; }
+
+function sheetFoodAdd(){
+  const cur = mealByHour();
+  openSheet(`
+    <div class="sheet-top"><h2>Agregar comida</h2><button class="link" data-act="sheet-close">Cerrar</button></div>
+    <label class="f" for="fName">¿Qué comiste o tomaste?</label>
+    <input class="in" id="fName" placeholder="Yogur con granola">
+    <label class="f">Momento</label>
+    <div class="chips" id="fMeal">${MEALS.map(([id,l])=>`<button class="chip ${id===cur?"on":""}" data-act="pick-meal" data-meal="${id}">${l}</button>`).join("")}</div>
+    <label class="f" for="fKcal">Calorías (opcional)</label>
+    <input class="in" id="fKcal" type="number" inputmode="numeric" placeholder="Si no sabés, dejalo vacío">
+    <div class="sheet-actions"><button class="btn leaf" data-act="food-save">Guardar comida</button></div>
+    <p class="hint">Si se lo contás al nutri en el chat, estima las calorías por vos.</p>`);
+}
+function sheetFood(key,id){
+  const f = day(key).foods.find(x=>x.id===id); if(!f) return;
+  const meal = MEALS.find(m=>m[0]===f.meal)?.[1] || "";
+  openSheet(`
+    <div class="sheet-top"><h2>${esc(f.name)}</h2><button class="link" data-act="sheet-close">Cerrar</button></div>
+    <p class="sub">${meal}, ${hora(f.t)} hs</p>
+    ${f.kcal||f.p||f.c||f.g ? `<div class="stats" style="margin-top:18px">
+      <div class="stat"><b>${num(f.kcal)}</b><span>kcal aprox.</span></div>
+      <div class="stat"><b>${num(f.p)} g</b><span>proteínas</span></div>
+      <div class="stat"><b>${num(f.c)} g</b><span>carbohidratos</span></div>
+      <div class="stat"><b>${num(f.g)} g</b><span>grasas</span></div></div>` : ""}
+    <div class="sheet-actions"><button class="btn danger" data-act="food-del" data-key="${key}" data-id="${id}">Borrar comida</button></div>`);
+}
+function sheetWater(){
+  openSheet(`
+    <div class="sheet-top"><h2>Agregar agua</h2><button class="link" data-act="sheet-close">Cerrar</button></div>
+    <label class="f" for="wMl">Cantidad en ml</label>
+    <input class="in" id="wMl" type="number" inputmode="numeric" placeholder="330">
+    <div class="chips" style="margin-top:12px">${[150,330,750,1000].map(v=>`<button class="chip" data-act="water" data-ml="${v}" data-close="1">${v>=1000?"1 litro":v+" ml"}</button>`).join("")}</div>
+    <div class="sheet-actions"><button class="btn water" data-act="water-save">Agregar agua</button></div>`);
+}
+function sheetSettings(){
+  const s = S.settings;
+  openSheet(`
+    <div class="sheet-top"><h2>Ajustes</h2><button class="link" data-act="sheet-close">Cerrar</button></div>
+    <label class="f" for="sName">Tu nombre</label>
+    <input class="in" id="sName" value="${esc(s.name)}" placeholder="Cómo querés que te llame">
+    <label class="f" for="sWater">Meta de agua por día (ml)</label>
+    <input class="in" id="sWater" type="number" inputmode="numeric" value="${s.waterGoal}">
+    <label class="f" for="sKcal">Meta de calorías por día (opcional)</label>
+    <input class="in" id="sKcal" type="number" inputmode="numeric" value="${s.kcalGoal||""}" placeholder="Sin meta">
+    <hr>
+    <label class="f" for="sProv">IA del nutri</label>
+    <select class="in" id="sProv">
+      <option value="gemini" ${s.provider==="gemini"?"selected":""}>Google Gemini (tiene plan gratis)</option>
+      <option value="claude" ${s.provider==="claude"?"selected":""}>Claude, de Anthropic (pago por uso)</option>
+    </select>
+    <label class="f" for="sKey">Clave (API key)</label>
+    <input class="in" id="sKey" type="password" value="${esc(s.keys[s.provider])}" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <label class="f" for="sModel">Modelo</label>
+    <input class="in" id="sModel" value="${esc(s.models[s.provider])}" autocapitalize="off" spellcheck="false">
+    <p class="hint" id="sHint"></p>
+    <div class="sheet-actions"><button class="btn leaf" data-act="settings-save">Guardar ajustes</button></div>
+    <hr>
+    <div class="sheet-actions" style="margin-top:8px">
+      <button class="btn" data-act="backup">Descargar copia de seguridad</button>
+      <button class="btn" data-act="restore">Restaurar una copia</button>
+      <button class="btn" data-act="chat-clear">Vaciar el chat</button>
+      <button class="btn danger" data-act="reset">Borrar todos los datos</button>
+    </div>
+    <p class="hint">Todo se guarda solo en este teléfono. Bajá una copia cada tanto por si cambiás de celular o se borran los datos del navegador.</p>
+    <input type="file" id="restoreInput" accept="application/json,.json" hidden>`);
+  provHint();
+}
+function provHint(){
+  const p = document.getElementById("sProv").value;
+  document.getElementById("sHint").innerHTML = p==="gemini"
+    ? `La clave se saca gratis en <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:var(--water)">aistudio.google.com/apikey</a>.`
+    : `La clave se crea en <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--water)">console.anthropic.com</a> y requiere cargar saldo.`;
+}
+
+/* ============================================================
+   EVENTOS
+   ============================================================ */
+function toast(msg){
+  const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast.id); toast.id = setTimeout(()=>t.classList.remove("show"),2200);
+}
+let currentTab = "hoy";
+function go(tab){
+  currentTab = tab;
+  document.querySelectorAll(".tab").forEach(el=>el.classList.toggle("on", el.id==="tab-"+tab));
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on", b.dataset.tab===tab));
+  document.getElementById("main").scrollTop = 0;
+  renderAll();
+}
+function renderAll(){ renderHoy(); renderChat(); renderGym(); renderMes(); }
+
+document.addEventListener("click", e=>{
+  if(e.target.id==="sheet"){ closeSheet(); return; }
+  const tabBtn = e.target.closest("[data-tab]");
+  if(tabBtn){ closeSheet(); go(tabBtn.dataset.tab); return; }
+  const el = e.target.closest("[data-act]"); if(!el) return;
+  const a = el.dataset.act, key = todayKey();
+  switch(a){
+    case "water": {
+      const w = addWater(el.dataset.ml);
+      if(w){ const d = day(key), g = S.settings.waterGoal;
+        toast(waterOf(d)>=g && waterOf(d)-w.ml<g ? "Meta de agua cumplida" : `Agregaste ${w.ml} ml`); }
+      if(el.dataset.close) closeSheet(); renderAll(); break; }
+    case "water-custom": sheetWater(); setTimeout(()=>document.getElementById("wMl")?.focus(),50); break;
+    case "water-save": {
+      const w = addWater(document.getElementById("wMl").value);
+      if(!w){ toast("Escribí una cantidad en ml"); break; }
+      closeSheet(); toast(`Agregaste ${w.ml} ml`); renderAll(); break; }
+    case "water-undo": {
+      const d = day(key); if(!d.water.length){ toast("No hay agua cargada hoy"); break; }
+      const w = d.water.pop(); save(); toast(`Quitaste ${w.ml} ml`); renderAll(); break; }
+    case "food-add": sheetFoodAdd(); setTimeout(()=>document.getElementById("fName")?.focus(),50); break;
+    case "pick-meal": document.querySelectorAll("#fMeal .chip").forEach(c=>c.classList.toggle("on",c===el)); break;
+    case "food-save": {
+      const name = document.getElementById("fName").value.trim();
+      if(!name){ toast("Escribí qué comiste"); break; }
+      addFood({name, meal:document.querySelector("#fMeal .chip.on")?.dataset.meal, kcal:document.getElementById("fKcal").value});
+      closeSheet(); toast("Comida guardada"); renderAll(); break; }
+    case "food-open": sheetFood(el.dataset.key, el.dataset.id); break;
+    case "food-del": removeEntry(el.dataset.key,"comida",el.dataset.id); closeSheet(); toast("Comida borrada"); renderAll(); break;
+    case "gym-on": setGym(10); toast("Bien ahí. Día marcado."); renderAll(); break;
+    case "gym-min": setGym(el.dataset.min); renderAll(); break;
+    case "gym-off": removeEntry(key,"gym"); renderAll(); break;
+    case "ex": {
+      const d = day(key,true), i = Number(el.dataset.i);
+      d.abs = d.abs.includes(i) ? d.abs.filter(x=>x!==i) : [...d.abs,i];
+      save();
+      if(d.abs.length===ROUTINES[routineFor(key)].ex.length && !d.gym?.done){ setGym(10); toast("Rutina completa. Día marcado."); }
+      renderAll(); break; }
+    case "timer-toggle": timerToggle(); break;
+    case "timer-reset": clearInterval(timer.id); timer = {left:600,running:false,end:0,id:null}; renderGym(); break;
+    case "month": cal.setMonth(cal.getMonth()+Number(el.dataset.dir)); renderMes(); break;
+    case "day": dayDetail(el.dataset.key); break;
+    case "csv": exportCSV(); break;
+    case "send": send(); break;
+    case "suggest": document.getElementById("chatText").value = el.textContent; send(); break;
+    case "img-pick": document.getElementById("imgInput").click(); break;
+    case "img-clear": clearImg(); break;
+    case "undo": {
+      const l = S.chat[el.dataset.m]?.logged?.[el.dataset.l]; if(!l) break;
+      removeEntry(l.key,l.kind,l.id); l.undone = true; save(); toast("Registro deshecho"); renderAll(); break; }
+    case "quick-key": {
+      const k = document.getElementById("quickKey").value.trim();
+      if(!k){ toast("Pegá la clave primero"); break; }
+      S.settings.provider = "gemini"; S.settings.keys.gemini = k; save(); renderChat(); toast("Clave guardada"); break; }
+    case "settings": sheetSettings(); break;
+    case "settings-save": {
+      const s = S.settings, p = document.getElementById("sProv").value;
+      s.name = document.getElementById("sName").value.trim();
+      s.waterGoal = Math.min(8000, Math.max(250, Math.round(Number(document.getElementById("sWater").value)||2000)));
+      s.kcalGoal = Math.max(0, Math.round(Number(document.getElementById("sKcal").value)||0));
+      s.provider = p;
+      s.keys[p] = document.getElementById("sKey").value.trim();
+      s.models[p] = document.getElementById("sModel").value.trim() || DEFAULT_MODELS[p];
+      save(); closeSheet(); toast("Ajustes guardados"); renderAll(); break; }
+    case "backup": {
+      const copy = JSON.parse(JSON.stringify(S));
+      copy.settings.keys = {gemini:"",claude:""};      // las claves no viajan en la copia
+      copy.chat.forEach(m=>delete m.thumb);
+      download(`saludable-copia-${todayKey()}.json`, JSON.stringify(copy,null,1), "application/json"); break; }
+    case "restore": document.getElementById("restoreInput").click(); break;
+    case "chat-clear": if(confirm("¿Vaciar la conversación con el nutri? Lo que ya quedó registrado no se borra.")){ S.chat=[]; save(); closeSheet(); renderAll(); } break;
+    case "reset":
+      if(confirm("¿Seguro que querés borrar todo el historial? No se puede deshacer.")){
+        const keep = S.settings; S = defaults(); S.settings = keep; save(); closeSheet(); renderAll(); toast("Datos borrados"); }
+      break;
+    case "sheet-close": closeSheet(); break;
+  }
+});
+document.addEventListener("change", e=>{
+  if(e.target.id==="imgInput") pickImage(e.target.files[0]);
+  if(e.target.id==="sProv"){
+    const p = e.target.value;
+    document.getElementById("sKey").value = S.settings.keys[p]||"";
+    document.getElementById("sModel").value = S.settings.models[p]||DEFAULT_MODELS[p];
+    provHint();
+  }
+  if(e.target.id==="restoreInput" && e.target.files[0]){
+    e.target.files[0].text().then(t=>{
+      const data = JSON.parse(t);
+      if(!data || typeof data.days!=="object") throw 0;
+      const keys = S.settings.keys;
+      S = {...defaults(), ...data, settings:{...defaults().settings, ...data.settings, keys}};
+      save(); closeSheet(); renderAll(); toast("Copia restaurada");
+    }).catch(()=>toast("Ese archivo no es una copia válida"));
+  }
+});
+const ta = document.getElementById("chatText");
+ta.addEventListener("input", ()=>{ ta.style.height="auto"; ta.style.height=Math.min(120,ta.scrollHeight)+"px"; });
+ta.addEventListener("keydown", e=>{
+  if(e.key==="Enter" && !e.shiftKey && !matchMedia("(pointer:coarse)").matches){ e.preventDefault(); send(); }
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeSheet(); });
+
+/* ============================================================
+   INICIO
+   ============================================================ */
+renderAll();
+// si la app queda abierta y cambia el día, se actualiza sola
+let lastKey = todayKey();
+setInterval(()=>{ const k = todayKey(); if(k!==lastKey){ lastKey = k; renderAll(); } }, 60*1000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) renderAll(); });
 </script>
-
 </body>
 </html>
